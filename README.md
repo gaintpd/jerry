@@ -18,11 +18,15 @@ Jerry is a cross-platform chess graphical user interface.
 
 ## Download
 
-* [Windows (Installer)](https://github.com/asdfjkl/jerry/releases/download/v3.2.0/SetupJerryChess.exe)
+* [Windows (Installer)](https://github.com/asdfjkl/jerry/releases/download/v3.2.1/SetupJerryChess.exe)
 * [Linux (.deb)](https://github.com/asdfjkl/jerry/releases/download/v3.2.0/jerry_3.2.0-1_amd64.deb)
 * [macOS](https://github.com/asdfjkl/jerry/releases/download/v3.2.0/Jerry.dmg)
 
 ## Changelog
+
+Version 3.2.1 (Dec 2019): New features:
+ * bug fix in displaying move and position annotations
+ * ability to flip board when entering a new position
 
 Version 3.2.0 (July 2019): Major new features:
 
