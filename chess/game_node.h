@@ -47,6 +47,8 @@ public:
      */
     ~GameNode();
 
+    void reset();
+
     /**
      * @brief getId each game node is assigned a unique id
      *        automatically during construction.
@@ -58,7 +60,7 @@ public:
      * @brief getBoard
      * @return Board of current node
      */
-    Board getBoard();
+    Board* getBoard();
 
     /**
      * @brief setBoard deletes the old board of this node, and sets

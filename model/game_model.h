@@ -66,8 +66,8 @@ public:
     int getMode();
     void setMode(int mode);
 
-    ColorStyle *colorStyle;
-    FontStyle *fontStyle;
+    ColorStyle colorStyle;
+    FontStyle fontStyle;
     QVector<Engine> getEngines();
     Engine getActiveEngine();
     int getActiveEngineIdx();

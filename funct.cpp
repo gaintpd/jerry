@@ -126,6 +126,7 @@ int FuncT::count_moves(Board b, int depth) {
 
 }
 
+/*
 void FuncT::rwrw_pgn(const QString &fn_in, const QString &fn_out) {
 
     PgnReader* pgn_r = new PgnReader();
@@ -135,6 +136,8 @@ void FuncT::rwrw_pgn(const QString &fn_in, const QString &fn_out) {
     pgn_p->writeGame(*g, fn_out);
 
 }
+*/
+
 /*
 void FuncT::run_pgn_scant() {
 
@@ -183,6 +186,7 @@ void FuncT::run_pgn_parse_speedtest() {
     qDebug() << "pgn parse speed test finished.";
 }
 
+/*
 void FuncT::run_pgn_speedtest() {
     chess::PgnReader reader;
     QFile file;
@@ -197,25 +201,28 @@ void FuncT::run_pgn_speedtest() {
     qDebug() << offsets.at(1000000).header.white;
     qDebug() << offsets.at(100000000).header.white;
     //QString complete_file = reader.readFileIntoString(filename, encoding);
-    /*
-    QVector<qint64> offsets = reader.scanPgn(filename, false);
-    //QVector<PgnHeaderOffset> foo = reader.scan_headers(filename, encoding);
-    qDebug() << "offset" << offsets.at(1);
-    qDebug() << "offset" << offsets.at(100);
-    qDebug() << "offset" << offsets.at(100000);
-    qDebug() << "offset" << offsets.at(1000000);
-    qDebug() << "finished";
-    chess::PgnPrinter printer;
-    PgnHeader game1 = reader.readHeaderFromPgnAt(filename, offsets.at(1), encoding);
-    PgnHeader game2 = reader.readHeaderFromPgnAt(filename, offsets.at(100), encoding);
-    PgnHeader game3 = reader.readHeaderFromPgnAt(filename, offsets.at(1000000), encoding);
 
-    qDebug() << game1.event;
-    qDebug() << game2.event;
-    qDebug() << game3.event;
-    */
+    //QVector<qint64> offsets = reader.scanPgn(filename, false);
+    ////QVector<PgnHeaderOffset> foo = reader.scan_headers(filename, encoding);
+    //qDebug() << "offset" << offsets.at(1);
+    //qDebug() << "offset" << offsets.at(100);
+    //qDebug() << "offset" << offsets.at(100000);
+    //qDebug() << "offset" << offsets.at(1000000);
+    //qDebug() << "finished";
+    //chess::PgnPrinter printer;
+    //PgnHeader game1 = reader.readHeaderFromPgnAt(filename, offsets.at(1), encoding);
+    //PgnHeader game2 = reader.readHeaderFromPgnAt(filename, offsets.at(100), encoding);
+    //PgnHeader game3 = reader.readHeaderFromPgnAt(filename, offsets.at(1000000), encoding);
+
+    //qDebug() << game1.event;
+    //qDebug() << game2.event;
+    //qDebug() << game3.event;
+
 }
 
+*/
+
+/*
 void FuncT::run_pgnt() {
 
     std::cout << "reading complex.pgn..." << std::endl;
@@ -269,7 +276,9 @@ void FuncT::run_pgnt() {
     this->rwrw_pgn(l2,l3);
 
 }
+*/
 
+/*
 void FuncT::run_sant() {
     // some san tests
     Board b0 = Board(QString("rnbqkbnr/pppppppp/8/2R5/5R2/2R5/PPPPPPP1/1NBQKBN1 w - - 0 1"));
@@ -307,6 +316,7 @@ void FuncT::run_sant() {
         std::cout << "  UCI again: " << mi2.uci().toStdString() << std::endl;
     }
 }
+*/
 
 void FuncT::run_polyglot() {
     //QString foo = QString("/home/user/workspace/build-jerry3-Desktop-Release/books/varied.bin");
@@ -570,6 +580,7 @@ void FuncT::run_pertf() {
 
 }
 
+/*
 void FuncT::run_zobrist_test() {
 
         chess::Board *b = new Board(QString("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"));
@@ -625,7 +636,7 @@ void FuncT::run_zobrist_test() {
         std::cout << "expected: 5c3f9b829b279560" << std::endl;
         std::cout << "got     : " << std::hex << key << std::dec << std::endl << std::endl;
         delete b;
-
 }
+*/
 
 }

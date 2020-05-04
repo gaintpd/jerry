@@ -21,12 +21,14 @@
 #include "game.h"
 #include <QDebug>
 #include <iostream>
+#include "node_pool.h"
 
 namespace chess {
 
 Game::Game() {
 
-    this->root = new GameNode();
+    //this->root = new GameNode();
+    this->root = NodePool::makeNode();
     this->result = RES_UNDEF;
     this->current = root;
     this->treeWasChanged = false;
@@ -36,9 +38,19 @@ Game::Game() {
 
 }
 
+void Game::reset() {
+
+    this->root = NodePool::makeNode();
+    this->result = RES_UNDEF;
+    this->current = root;
+    this->treeWasChanged = false;
+
+    this->wasEcoClassified = false;
+}
+
 Game::~Game() {
-    this->delBelow(this->root);
-    delete this->root;
+    //this->delBelow(this->root);
+    //delete this->root;
 }
 
 GameNode* Game::getRootNode() {
@@ -110,34 +122,32 @@ bool Game::hasCommentSubstringBelow(QString &s, GameNode* temp, bool caseSensiti
 }
 */
 
-/*
-bool Game::hasCommentSubstringMainline(QString &s, bool caseSensitive) {
+bool Game::matchesPosition(quint64 posHash) {
 
     GameNode* temp = this->getRootNode();
-    if(caseSensitive) {
-        if(temp->getComment().contains(s)) {
-            return true;
-        }
-    } else {
-        if(temp->getComment().contains(s, Qt::CaseInsensitive)) {
-            return true;
-        }
+    Board *b = temp->getBoard();
+    //std::cout << *b << std::endl;
+    if(temp->getBoard()->get_pos_hash() == posHash) {
+        return true;
     }
-    while(temp->variations.count() > 0) {
+    while(temp->variations.size() > 0) {
         temp = temp->getVariation(0);
-        if(caseSensitive) {
-            if(temp->getComment().contains(s)) {
-                return true;
-            }
-        } else {
-            if(temp->getComment().contains(s, Qt::CaseInsensitive)) {
-                return true;
-            }
+        b = temp->getBoard();
+        //std::cout << *b << std::endl;
+        //qDebug() << "";
+        //qDebug().noquote() << b->printRaw();
+        //qDebug() << "";
+        if(temp->getBoard()->get_pos_hash() == posHash) {
+            return true;
         }
     }
     return false;
 }
-*/
+
+bool isThreefoldRepetition() {
+    //TODO
+    return false;
+}
 
 
 GameNode* Game::findNodeByIdRec(int id, GameNode *node) {
@@ -256,10 +266,10 @@ void Game::applyMove(Move &m) {
     }
     if(!exists_child) {
         GameNode *current = this->getCurrentNode();
-        Board b_current = current->getBoard();
-        Board b_child = Board(b_current); //b_current.copy_and_apply(m);
+        Board *b_current = current->getBoard();
+        Board b_child = Board(*b_current);
         b_child.apply(m);
-        GameNode *new_current = new GameNode();
+        GameNode *new_current = NodePool::makeNode();
         new_current->setBoard(b_child);
         new_current->setMove(m);
         new_current->setParent(current);

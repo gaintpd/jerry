@@ -5,7 +5,7 @@
 #include <QVBoxLayout>
 
 
-TabBoardStyle::TabBoardStyle(ColorStyle *currentStyle, QWidget *parent)
+TabBoardStyle::TabBoardStyle(ColorStyle &currentStyle, QWidget *parent)
     : QWidget(parent)
 {
 
@@ -31,7 +31,7 @@ TabBoardStyle::TabBoardStyle(ColorStyle *currentStyle, QWidget *parent)
     QRadioButton *brd_blue_marbles = new QRadioButton(tr("Blue Marbles"));
     QRadioButton *brd_green_marbles = new QRadioButton(tr("Green Marbles"));
 
-    switch(currentStyle->pieceType) {
+    switch(currentStyle.pieceType) {
     case PIECE_STYLE_OLD:
         pcs_old->setChecked(true);
         break;
@@ -42,24 +42,24 @@ TabBoardStyle::TabBoardStyle(ColorStyle *currentStyle, QWidget *parent)
         pcs_merida->setChecked(true);
     }
 
-    if(currentStyle->boardStyle == BOARD_STYLE_TEXTURE) {
-        if(currentStyle->borderColor == BORDER_WOOD) {
+    if(currentStyle.boardStyle == BOARD_STYLE_TEXTURE) {
+        if(currentStyle.borderColor == BORDER_WOOD) {
             brd_wood->setChecked(true);
         }
-        if(currentStyle->borderColor == BORDER_MARBLE_GREEN) {
+        if(currentStyle.borderColor == BORDER_MARBLE_GREEN) {
             brd_green_marbles->setChecked(true);
         }
-        if(currentStyle->borderColor == BORDER_MARLBE_BLUE) {
+        if(currentStyle.borderColor == BORDER_MARLBE_BLUE) {
             brd_blue_marbles->setChecked(true);
         }
     } else {
-        if(currentStyle->borderColor == BORDER_BLUE) {
+        if(currentStyle.borderColor == BORDER_BLUE) {
             brd_blue->setChecked(true);
         }
-        if(currentStyle->borderColor == BORDER_GREEN) {
+        if(currentStyle.borderColor == BORDER_GREEN) {
             brd_green->setChecked(true);
         }
-        if(currentStyle->borderColor == BORDER_BROWN) {
+        if(currentStyle.borderColor == BORDER_BROWN) {
             brd_brown->setChecked(true);
         }
     }

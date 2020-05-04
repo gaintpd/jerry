@@ -28,6 +28,7 @@
 #include "chess/pgn_printer.h"
 #include "chess/pgn_reader.h"
 #include <QtGui>
+#include "chess/node_pool.h"
 #include "internalengine.h"
 #include "various/resource_finder.h"
 
@@ -41,8 +42,8 @@ GameModel::GameModel(QObject *parent) :
     this->lastSaveDir = "";
     this->currentPgnFilename = "";
     this->game = new chess::Game();
-    this->colorStyle = new ColorStyle(ResourceFinder::getPath());
-    this->fontStyle = new FontStyle();
+    //this->colorStyle = new ColorStyle(ResourceFinder::getPath());
+    //this->fontStyle = new FontStyle();
     this->mode = MODE_ENTER_MOVES;
     InternalEngine default_engine = InternalEngine();
     //qDebug() << "on model startup:" << default_engine.getPath();
@@ -145,6 +146,7 @@ chess::Game* GameModel::getGame() {
 
 void GameModel::setGame(chess::Game *g) {
     assert(g != nullptr);
+    chess::NodePool::deleteNode(this->game->getRootNode());
     delete this->game;
     this->game = g;
     //this->game->setCurrent(this->game->getRootNode());
@@ -202,12 +204,12 @@ void GameModel::saveGameState() {
     settings.setValue("lastSaveDir", this->lastSaveDir);
     settings.setValue("lastOpenDir", this->lastOpenDir);
 
-    settings.setValue("colorTheme", colorStyle->styleType);
-    settings.setValue("pieceType", colorStyle->pieceType);
+    settings.setValue("colorTheme", colorStyle.styleType);
+    settings.setValue("pieceType", colorStyle.pieceType);
     settings.setValue("lastAddedEnginePath", this->lastAddedEnginePath);
 
-    settings.setValue("engineViewFontSize", fontStyle->engineOutFontSize);
-    settings.setValue("moveViewFontSize", fontStyle->moveWindowFontSize);
+    settings.setValue("engineViewFontSize", fontStyle.engineOutFontSize);
+    settings.setValue("moveViewFontSize", fontStyle.moveWindowFontSize);
 
     // stockfish specific settings
     settings.setValue("engineStrength", this->engineStrength);
@@ -263,15 +265,14 @@ void GameModel::saveGameState() {
     // write current game as pgn to settings
     // first set dummy value
     settings.setValue("currentGame", "");
-    chess::PgnPrinter *printer = new chess::PgnPrinter();
+    chess::PgnPrinter printer;
     try {
-        QStringList pgnStringList = printer->printGame(*this->getGame());
+        QStringList pgnStringList = printer.printGame(this->getGame());
         QString pgn = pgnStringList.join("\n");
         settings.setValue("currentGame", pgn);
     } catch(std::exception e) {
         std::cerr << e.what() << std::endl;
     }
-    delete printer;
     settings.sync();
 }
 
@@ -283,7 +284,8 @@ void GameModel::restoreGameState() {
         QString pgnString = settings.value("currentGame").toString();
         chess::PgnReader *reader = new chess::PgnReader();
         try {
-            this->game = reader->readGameFromString(pgnString);
+            chess::Game *g = this->getGame();
+            reader->readGameFromString(pgnString, g);
             this->game->findEco();
         } catch(std::exception e) {
             if(this->game != nullptr) {
@@ -308,16 +310,16 @@ void GameModel::restoreGameState() {
     }
     if(settings.contains("colorTheme")) {
         int styleType = settings.value("colorTheme").toInt();
-        this->colorStyle->setStyle(styleType);
+        this->colorStyle.setStyle(styleType);
     }
     if(settings.contains("engineViewFontSize")) {
-        this->fontStyle->engineOutFontSize = settings.value("engineViewFontSize").toString();
+        this->fontStyle.engineOutFontSize = settings.value("engineViewFontSize").toString();
     }
     if(settings.contains("moveViewFontSize")) {
-        this->fontStyle->moveWindowFontSize = settings.value("moveViewFontSize").toString();
+        this->fontStyle.moveWindowFontSize = settings.value("moveViewFontSize").toString();
     }
     if(settings.contains("pieceType")) {
-        this->colorStyle->pieceType = settings.value("pieceType").toInt();
+        this->colorStyle.pieceType = settings.value("pieceType").toInt();
     }
     if(settings.contains("lastAddedEnginePath")) {
         this->lastAddedEnginePath = settings.value("lastAddedEnginePath").toString();

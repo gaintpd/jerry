@@ -26,12 +26,6 @@
 
 namespace chess {
 
-const int RES_UNDEF = 0;
-const int RES_WHITE_WINS = 1;
-const int RES_BLACK_WINS = 2;
-const int RES_DRAW = 3;
-const int RES_ANY = 4;
-
 class Game
 {
 
@@ -44,6 +38,7 @@ public:
      */
     bool isTreeChanged();
 
+    void reset();
 
     /**
      *  @brief call this function with true if an operation was carried
@@ -240,6 +235,8 @@ public:
     bool hasCommentSubstringMainline(QString &s, bool caseSensitive);
     */
 
+    bool matchesPosition(quint64 posHash);
+
     /**
      * @brief clearHeaders deletes all headers entries.
      */
@@ -254,6 +251,8 @@ public:
      * @return
      */
     int countHalfmoves();
+
+    bool isThreefoldRepetition();
 
 private:
 

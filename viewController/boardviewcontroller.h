@@ -50,14 +50,14 @@ private:
     GameModel *gameModel;
 
     void drawBoard(QPaintEvent *e, QPainter *q);
-    QPoint* getBoardPosition(int x, int y);
-    uint8_t xyToBoardIdx(int x, int y);
+    QPoint getBoardPosition(int x, int y);
+    int xyToBoardIdx(int x, int y);
     void touchPiece(int x, int y, int mouse_x, int mouse_y);
     void resetMove();
     void drawArrow(chess::Arrow *, int boardOffsetX, int boardOffsetY, int squareSize, QPainter *);
-    void handleColoringOnKeyPress(QPoint *pos);
-    void handleColoringonKeyRelease(QPoint *pos);
-    void applyMove(chess::Move *m);
+    void handleColoringOnKeyPress(const QPoint &pos);
+    void handleColoringonKeyRelease(const QPoint &pos);
+    void applyMove(chess::Move &m);
 
 protected:
      void paintEvent(QPaintEvent *e);

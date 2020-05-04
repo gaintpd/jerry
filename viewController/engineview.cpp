@@ -18,7 +18,7 @@ EngineView::EngineView(GameModel *gameModel, QWidget *parent) :
 }
 
 void EngineView::onStateChange() {
-    QString size = this->gameModel->fontStyle->engineOutFontSize;
+    QString size = this->gameModel->fontStyle.engineOutFontSize;
     QFont f;
     if(!size.isEmpty()) {
         if(!size.isEmpty()) {

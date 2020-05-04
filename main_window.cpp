@@ -17,7 +17,6 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#include "main_window.h"
 #include <QApplication>
 #include <QDesktopWidget>
 #include <QDebug>
@@ -31,16 +30,6 @@
 #include <QMenu>
 #include <QPrinter>
 #include <QSettings>
-#include "viewController/boardviewcontroller.h"
-#include "viewController/moveviewcontroller.h"
-#include "controller/edit_controller.h"
-#include "controller/mode_controller.h"
-#include "uci/uci_controller.h"
-#include "model/game_model.h"
-#include "chess/game_node.h"
-#include "uci/uci_controller.h"
-#include <QPushButton>
-#include "viewController/on_off_button.h"
 #include <QComboBox>
 #include <QCheckBox>
 #include <QShortcut>
@@ -48,15 +37,25 @@
 #include <QSplitter>
 #include <QButtonGroup>
 #include <QDesktopServices>
+#include <QPushButton>
+#include "main_window.h"
+#include "chess/ecocode.h"
 #include "chess/pgn_reader.h"
+#include "chess/game_node.h"
+#include "viewController/boardviewcontroller.h"
+#include "viewController/moveviewcontroller.h"
 #include "viewController/engineview.h"
+#include "viewController/on_off_button.h"
+#include "controller/edit_controller.h"
+#include "controller/mode_controller.h"
+#include "uci/uci_controller.h"
+#include "uci/uci_controller.h"
+#include "model/game_model.h"
 #include "dialogs/dialog_about.h"
 #include "various/resource_finder.h"
 #include "various/messagebox.h"
 
-#include "funct.h"
 
-#include "chess/ecocode.h"
 
 #ifdef __APPLE__
     const bool SHOW_ICON_TEXT = false;
@@ -69,15 +68,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // set working dir to executable work directory
     QDir::setCurrent(QCoreApplication::applicationDirPath());
-
-
-    //chess::FuncT *f = new chess::FuncT();
-    //f->run_pgn_speedtest();
-    //f->run_polyglot();
-    /*
-    f->run_pgnt();
-    f->run_pgn_scant();
-    */
 
     // reconstruct gameModel
     this->gameModel = new GameModel();
@@ -100,7 +90,7 @@ MainWindow::MainWindow(QWidget *parent) :
     moveViewController->setFocusPolicy(Qt::ClickFocus);
 
     this->name = new QLabel();
-    name->setText("<b>Robert James Fisher - Reuben Fine</b><br/>New York(USA) 1963.03.??");
+    name->setText("<b>Unknown - Unknown");
     name->setAlignment(Qt::AlignCenter);
     name->setBuddy(moveViewController);
 
@@ -118,14 +108,12 @@ MainWindow::MainWindow(QWidget *parent) :
     this->editController    = new EditController(gameModel, this);
     this->fileController    = new FileController(gameModel, this);
 
-
     QSize btnSize           = QSize(this->iconSize() * 1.1);
     QSize btnSizeLR         = QSize(this->iconSize() * 1.2);
     QPushButton *left       = new QPushButton();
     QPushButton *right      = new QPushButton();
     QPushButton *beginning  = new QPushButton();
     QPushButton *end        = new QPushButton();
-
 
     left->setIconSize(btnSizeLR);
     right->setIconSize(btnSizeLR);
@@ -164,7 +152,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     QHBoxLayout *hbox_right_engine_buttons = new QHBoxLayout();
 
-    this->pbEngineOnOff = new OnOffButton(this); //new QPushButton("OFF");
+    this->pbEngineOnOff = new OnOffButton(this);
     this->lblMultiPv    = new QLabel(this->tr("Lines:"), this);
     this->spinMultiPv   = new QSpinBox(this);
     this->spinMultiPv->setRange(1,4);
@@ -235,7 +223,7 @@ MainWindow::MainWindow(QWidget *parent) :
     frameTopDown->setFrameShadow(QFrame::Sunken);
     layoutSplitterTopDown->addWidget(frameTopDown);
 
-
+    // GAME MENU
     QMenu *m_game = this->menuBar()->addMenu(this->tr("Game"));
     QAction* actionNewGame = m_game->addAction(this->tr("New..."));
     QAction* actionOpen = m_game->addAction(this->tr("Open File"));
@@ -243,7 +231,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_game->addSeparator();
     QAction* actionPrintGame = m_game->addAction(this->tr("Print Game"));
     QAction* actionPrintPosition = m_game->addAction(this->tr("Print Position"));
-    QAction *save_diagram = m_game->addAction(this->tr("Save Position as Image..."));
+    QAction *actionSaveDiagram = m_game->addAction(this->tr("Save Position as Image..."));
     m_game->addSeparator();
     QAction *actionQuit = m_game->addAction(this->tr("Quit"));
 
@@ -372,50 +360,6 @@ MainWindow::MainWindow(QWidget *parent) :
     QShortcut *sc_enter_pos = new QShortcut(QKeySequence(Qt::Key_E), this);
     sc_enter_pos->setContext(Qt::ApplicationShortcut);
 
-
-    /*
-    // FILE
-    // Game
-    QAction* actionNewGame = this->createAction("document-new", this->tr("New Game"), iconSize);
-    QAction* actionOpen = this->createAction("document-open", this->tr("Open File"), iconSize);
-    QAction* actionSaveAs = this->createAction("document-save", this->tr("Save Current\nGame As"), iconSize);
-    // Print
-    QAction* actionPrintGame = this->createAction("document-print", this->tr("Print Game"), iconSize);
-    QAction* actionPrintPosition = this->createAction("document-print-board", this->tr("Print Position"), iconSize);
-    // Layout
-    QAction* actionColorStyle = this->createAction("applications-graphics", this->tr("Board Style"), iconSize);
-    QAction* actionResetLayout = this->createAction("preferences-system-session", this->tr("Reset Layout"), iconSize);
-    // Quit
-    QAction* actionQuit = this->createAction("system-log-out", this->tr("Exit"), iconSize);
-    // Homepage
-    QAction* actionHomepage = this->createAction("internet-web-browser", this->tr("Homepage"), iconSize);
-    // Help (About)
-    QAction* actionAbout = this->createAction("help-browser", this->tr("About"), iconSize);
-
-    // START
-    // Game
-    QAction* actionPaste = this->createAction("edit-paste", this->tr("Paste\nGame/Position"), iconSize);
-    QAction* actionCopyGame = this->createAction("edit-copy-pgn", this->tr("Copy Game"), iconSizeSmall);
-    QAction* actionCopyPosition = this->createAction("edit-copy-fen", this->tr("Copy Position"), iconSizeSmall);
-    // Edit
-    QAction* actionEditGameData = this->createAction("edit-copy-fen", this->tr("Edit\nMeta Data"), iconSize);
-    QAction* actionEnterPosition = this->createAction("document-enter-position", this->tr("Setup\nNew Position"), iconSize);
-    QAction* actionFlipBoard = this->createAction("view-refresh", this->tr("Flip Board"), iconSize);
-    //QAction* actionShowSearchInfo = this->createAction("view-refresh", this->tr("Show\nSearch Info"), iconSize);
-    // Mode
-    QAction* actionAnalysis = this->createAction("edit-find", this->tr("Infinite\nAnalysis"), iconSize);
-    QAction* actionPlayWhite = this->createAction("play-white", this->tr("Play\nWhite"), iconSize);
-    QAction* actionPlayBlack = this->createAction("play-black", this->tr("Play\nBlack"), iconSize);
-    QAction* actionEnterMoves = this->createAction("text-pencil", this->tr("Enter\nMoves"), iconSize);
-    // Analysis
-    QAction* actionFullGameAnalysis = this->createAction("edit-find-replace", this->tr("Full\nGame Analysis"), iconSize);
-    QAction* actionEnginePlayout = this->createAction("dialog-information", this->tr("Engine\nPlayout"), iconSize);
-    // Database
-    QAction* actionDatabaseWindow = this->createAction("database", this->tr("Show\nDatabase"), iconSize);
-    QAction* actionLoadPreviousGame = this->createAction("go-previous", this->tr("Previous Game"), iconSizeSmall);
-    QAction* actionLoadNextGame = this->createAction("go-previous", this->tr("Next Game"), iconSizeSmall);
-    */
-
     mainWidget->setLayout(completeLayoutWithSplitter);
 
     this->setCentralWidget(mainWidget);
@@ -424,12 +368,12 @@ MainWindow::MainWindow(QWidget *parent) :
     this->setContextMenuPolicy(Qt::NoContextMenu);
 
     // SIGNALS AND SLOTS
-
     connect(actionNewGame, &QAction::triggered, this->fileController, &FileController::newGame);
     connect(actionOpen, &QAction::triggered, this->fileController, &FileController::openGame);
     connect(actionSaveAs, &QAction::triggered, this->fileController, &FileController::saveAsNewGame);
     connect(actionPrintGame, &QAction::triggered, this->fileController, &FileController::printGame);
     connect(actionPrintPosition, &QAction::triggered, this->fileController, &FileController::printPosition);
+    connect(actionSaveDiagram, &QAction::triggered, this, &MainWindow::saveImage);
 
     connect(actionColorStyle, &QAction::triggered, modeController, &ModeController::onOptionsClicked);
     connect(actionResetLayout, &QAction::triggered, this, &MainWindow::resetLayout);
@@ -444,7 +388,6 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(actionEditGameData, &QAction::triggered, editController, &EditController::editHeaders);
     connect(actionEnterPosition, &QAction::triggered, editController, &EditController::enterPosition);
     connect(actionFlipBoard, &QAction::triggered, this->boardViewController, &BoardViewController::flipBoard);
-    //connect(actionShowSearchInfo, &QAction::triggered, this->engineViewController, &EngineView::flipShowEval);
 
     connect(actionShowSearchInfo, &QAction::triggered, this->engineViewController, &EngineView::flipShowEval);
 
@@ -462,7 +405,6 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(actionLoadPreviousGame, &QAction::triggered, fileController, &FileController::toolbarPrevGameInPGN);
 
     // shortcuts
-
     connect(sc_flip, &QShortcut::activated, actionFlipBoard, &QAction::trigger);
     connect(sc_analysis_mode, &QShortcut::activated, modeController, &ModeController::onActivateAnalysisMode);
     connect(sc_play_white, &QShortcut::activated, modeController, &ModeController::onActivatePlayWhiteMode);
@@ -473,7 +415,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
     // toolbar buttons
-
     connect(tbActionNew,  &QAction::triggered, actionNewGame, &QAction::trigger);
     connect(tbActionOpen,  &QAction::triggered, actionOpen, &QAction::trigger);
     connect(tbActionSaveAs,  &QAction::triggered, actionSaveAs, &QAction::trigger);

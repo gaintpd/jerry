@@ -23,8 +23,9 @@
 #include "various/messagebox.h"
 #include <QDebug>
 
-ColorStyle::ColorStyle(QString resourcePath) {
-    this->resPath = resourcePath;
+//ColorStyle::ColorStyle(QString resourcePath) {
+ColorStyle::ColorStyle() {
+    //this->resPath = resourcePath;
     this->boardStyle = BOARD_STYLE_COLOR;
     this->pieceType = PIECE_STYLE_MERIDA;
 

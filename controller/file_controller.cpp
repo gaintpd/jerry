@@ -48,7 +48,7 @@ void FileController::printGame() {
     dlg->setWindowTitle(tr("Print Game"));
     if(dlg->exec() == QDialog::Accepted) {
         chess::PgnPrinter *pgnPrinter = new chess::PgnPrinter();
-        QString pgn = pgnPrinter->printGame(*this->gameModel->getGame()).join("\n");
+        QString pgn = pgnPrinter->printGame(this->gameModel->getGame()).join("\n");
         QPlainTextEdit *textEdit = new QPlainTextEdit(pgn);
         textEdit->print(&printer);
         delete textEdit;
@@ -62,7 +62,7 @@ void FileController::printPosition() {
     QPrintDialog *dlg = new QPrintDialog(&printer, this->parentWidget);
     dlg->setWindowTitle(tr("Print FEN"));
     if(dlg->exec() == QDialog::Accepted) {
-        QString fen = this->gameModel->getGame()->getCurrentNode()->getBoard().fen();
+        QString fen = this->gameModel->getGame()->getCurrentNode()->getBoard()->fen();
         QPlainTextEdit *textEdit = new QPlainTextEdit(fen);
         textEdit->print(&printer);
         delete textEdit;
@@ -173,7 +173,7 @@ void FileController::saveGame() {
 void FileController::saveGameTo(QString &filename) {
     chess::PgnPrinter *pgn = new chess::PgnPrinter();
     try {
-        pgn->writeGame(*this->gameModel->getGame(), filename);
+        pgn->writeGame(this->gameModel->getGame(), filename);
     } catch (std::exception &e) {
         this->gameModel->wasSaved = false;
         MessageBox *msg = new MessageBox(this->parentWidget);
@@ -230,6 +230,7 @@ void FileController::openInCurrentPgnAt(int idx) {
             msg->showMessage("Error Opening File", ("PGN files larger than 1 MB are not supported."));
             delete msg;
         } else {
+            /*
             const char* encoding = reader.detect_encoding(absoluteFilename);
             QString complete_file = reader.readFileIntoString(absoluteFilename, encoding);
             QList<chess::HeaderOffset> header_offsets = reader.scan_headersFromString(complete_file);
@@ -242,6 +243,7 @@ void FileController::openInCurrentPgnAt(int idx) {
                 this->gameModel->lastSaveFilename = QString("");
                 this->setupNewGame(g);
                 }
+            }*/
             }
         }
     catch(std::exception e) {

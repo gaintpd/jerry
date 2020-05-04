@@ -32,9 +32,11 @@ class DialogGuiOptions : public QDialog
 {
     Q_OBJECT
 public:
-    explicit DialogGuiOptions(ColorStyle *currentStyle, FontStyle *fontStyle, QWidget *parent = 0);
+    explicit DialogGuiOptions(ColorStyle &currentStyle, FontStyle &fontStyle, QWidget *parent = 0);
     //SimpleDisplayBoard* displayBoard;
     //PickColorBoard* displayBoard;
+    ColorStyle getSelectedColorStyle();
+    FontStyle getSelectedFontStyle();
 
 private:
     TabBoardStyle *tbs;

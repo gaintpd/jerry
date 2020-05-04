@@ -390,12 +390,12 @@ void MoveViewController::onStateChange() {
     if(this->gameModel->getGame()->isTreeChanged()) {
         this->document->clear();
         QString format = "a:link { color: #000000; text-decoration: none}";
-        if(!this->gameModel->fontStyle->moveWindowFontSize.isEmpty()) {
-            format.append(QString(" * { font-size: ").append(this->gameModel->fontStyle->moveWindowFontSize).append("pt; }"));
+        if(!this->gameModel->fontStyle.moveWindowFontSize.isEmpty()) {
+            format.append(QString(" * { font-size: ").append(this->gameModel->fontStyle.moveWindowFontSize).append("pt; }"));
         }
         this->document->setDefaultStyleSheet(format);
         chess::Game *g = this->gameModel->getGame();
-        QString sl = this->guiPrinter->printGame(*g);
+        QString sl = this->guiPrinter->printGame(g);
         this->document->setHtml(sl);
         this->setDocument(this->document);
         this->gameModel->getGame()->setTreeWasChanged(false);

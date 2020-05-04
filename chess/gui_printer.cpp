@@ -53,11 +53,11 @@ void GuiPrinter::writeToken(const QString &token) {
     this->pgn.append(token);
 }
 
-QString GuiPrinter::printGame(Game &g) {
+QString GuiPrinter::printGame(Game *g) {
 
     this->reset();
 
-    GameNode *root = g.getRootNode();
+    GameNode *root = g->getRootNode();
 
     this->writeToken("<p style=\"line-height:110%\">");
 
@@ -67,7 +67,7 @@ QString GuiPrinter::printGame(Game &g) {
         this->printComment(root->getComment());
     }
     this->printGameContent(root, true);
-    this->printResult(g.getResult());
+    this->printResult(g->getResult());
     this->pgn.append(this->currentLine);
 
     return pgn;
@@ -76,7 +76,7 @@ QString GuiPrinter::printGame(Game &g) {
 
 void GuiPrinter::printMove(GameNode *node) { //int nodeId, Board *b, Move *m) {
         int nodeId = node->getId();
-        Board b = node->getParent()->getBoard();
+        Board *b = node->getParent()->getBoard();
         QString s_nodeId = QString::number(nodeId);
         this->writeToken("<a name=\"");
         this->writeToken(s_nodeId);
@@ -84,13 +84,13 @@ void GuiPrinter::printMove(GameNode *node) { //int nodeId, Board *b, Move *m) {
         this->writeToken(s_nodeId);
         this->writeToken("\">");
 
-        if(b.turn == WHITE) {
-            QString tkn = QString::number(b.fullmove_number);
+        if(b->turn == WHITE) {
+            QString tkn = QString::number(b->fullmove_number);
             tkn.append(QString(". "));
             this->writeToken(tkn);
         }
         else if(this->forceMoveNumber) {
-            QString tkn = QString::number(b.fullmove_number);
+            QString tkn = QString::number(b->fullmove_number);
             tkn.append(QString("... "));
             this->writeToken(tkn);
         }

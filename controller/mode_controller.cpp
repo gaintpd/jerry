@@ -77,7 +77,7 @@ void ModeController::onBestMove(QString uci_move) {
         // completely skip that for black or white, if
         // that was chosen in the analysis
         chess::GameNode *current = this->gameModel->getGame()->getCurrentNode();
-        bool turn = current->getBoard().turn;
+        bool turn = current->getBoard()->turn;
         int analyse = this->gameModel->gameAnalysisForPlayer;
         if( (analyse == ANALYSE_BOTH_PLAYERS) ||
             (analyse==ANALYSE_WHITE_ONLY && turn == chess::WHITE) ||
@@ -124,7 +124,7 @@ void ModeController::onBestMove(QString uci_move) {
                     //qDebug() << "gn board nr:" << new_board->fullmove_number;
                     //qDebug() << "node san: " << gn->getSan();
                     current = gn;
-                    chess::Board current_board_temp = current->getBoard();
+                    //chess::Board current_board_temp = current->getBoard();
                     //qDebug() << "after setting: " << current_board_temp.fullmove_number;
                     //qDebug() << " ";
 
@@ -203,22 +203,14 @@ void ModeController::onSetEnginesClicked() {
 }
 
 void ModeController::onOptionsClicked() {
-    ColorStyle *newColorStyle = new ColorStyle(*this->gameModel->colorStyle);
-    FontStyle *newFontStyle = new FontStyle(*this->gameModel->fontStyle);
-    DialogGuiOptions *dlg = new DialogGuiOptions(newColorStyle, newFontStyle, this->parentWidget);
-    int result = dlg->exec();
+    DialogGuiOptions dlg(this->gameModel->colorStyle, this->gameModel->fontStyle, this->parentWidget);
+    int result = dlg.exec();
     if(result == QDialog::Accepted) {
-        delete this->gameModel->colorStyle;
-        delete this->gameModel->fontStyle;
-        this->gameModel->colorStyle = newColorStyle;
-        this->gameModel->fontStyle = newFontStyle;
+        this->gameModel->colorStyle = dlg.getSelectedColorStyle();
+        this->gameModel->fontStyle = dlg.getSelectedFontStyle();
         this->gameModel->getGame()->setTreeWasChanged(true);
         this->gameModel->triggerStateChange();
-    } else {
-        delete newColorStyle;
-        delete newFontStyle;
     }
-    delete dlg;
 }
 
 void ModeController::onStateChangeEnterMoves() {
@@ -227,7 +219,7 @@ void ModeController::onStateChangeEnterMoves() {
 
 void ModeController::onStateChangeAnalysis() {
 
-    QString fen = this->gameModel->getGame()->getCurrentNode()->getBoard().fen();
+    QString fen = this->gameModel->getGame()->getCurrentNode()->getBoard()->fen();
     this->uci_controller->uciSendCommand("stop");
     this->uci_controller->uciSendFen(fen);
     QString position = QString("position fen ").append(fen);
@@ -260,7 +252,7 @@ void ModeController::onStateChangeGameAnalysis() {
         } else {
             this->gameModel->gameAnalysisStarted = false;
         }
-        QString fen = parent->getBoard().fen();
+        QString fen = parent->getBoard()->fen();
         this->uci_controller->uciSendCommand("stop");
         this->uci_controller->uciSendFen(fen);
         QString position = QString("position fen ").append(fen);
@@ -412,7 +404,7 @@ void ModeController::onStateChangePlayWhiteOrBlack() {
         }
     }
     if(!usedBook) {
-        QString fen = this->gameModel->getGame()->getCurrentNode()->getBoard().fen();
+        QString fen = this->gameModel->getGame()->getCurrentNode()->getBoard()->fen();
         this->uci_controller->uciSendFen(fen);
         QString position = QString("position fen ").append(fen);
         this->uci_controller->uciSendPosition(position);
@@ -438,7 +430,7 @@ void ModeController::onActivatePlayoutPositionMode() {
 }
 
 void ModeController::onStateChangePlayoutPosition() {
-    QString fen = this->gameModel->getGame()->getCurrentNode()->getBoard().fen();
+    QString fen = this->gameModel->getGame()->getCurrentNode()->getBoard()->fen();
     this->uci_controller->uciSendFen(fen);
     QString position = QString("position fen ").append(fen);
     this->uci_controller->uciSendPosition(position);
@@ -447,7 +439,7 @@ void ModeController::onStateChangePlayoutPosition() {
 
 void ModeController::onStateChange() {
     int mode = this->gameModel->getMode();
-    int turn = this->gameModel->getGame()->getCurrentNode()->getBoard().turn;
+    int turn = this->gameModel->getGame()->getCurrentNode()->getBoard()->turn;
 
     MessageBox *msg = new MessageBox(this->parentWidget);
     chess::GameNode *current = this->gameModel->getGame()->getCurrentNode();
@@ -456,7 +448,7 @@ void ModeController::onStateChange() {
     // human plays: show info, change mode to enter moves
     // enter moves mode & analysis mode: show info but only
     // if the node was just created
-    if(current->getBoard().is_checkmate()) {
+    if(current->getBoard()->is_checkmate()) {
         if(mode == MODE_PLAY_WHITE || mode == MODE_PLAY_BLACK) {
             current->userWasInformedAboutResult = true;
             msg->showMessage(tr("Checkmate"), tr("The game is over!"));
@@ -475,7 +467,7 @@ void ModeController::onStateChange() {
         }
     }
     // same for stalemate
-    if(current->getBoard().is_stalemate()) {
+    if(current->getBoard()->is_stalemate()) {
         if(mode == MODE_PLAY_WHITE || mode == MODE_PLAY_BLACK) {
             msg->showMessage(tr("Stalemate"), tr("The game is drawn!"));
             this->onActivateEnterMovesMode();
@@ -486,7 +478,7 @@ void ModeController::onStateChange() {
         current->userWasInformedAboutResult = true;
     }
     // 50 moves rule
-    if(current->getBoard().can_claim_fifty_moves()) {
+    if(current->getBoard()->can_claim_fifty_moves()) {
         if(mode == MODE_PLAY_WHITE || mode == MODE_PLAY_BLACK) {
             this->gameModel->getGame()->setTreeWasChanged(true);
             msg->showMessage(tr("Draw"), tr("50 moves rule"));
@@ -497,7 +489,8 @@ void ModeController::onStateChange() {
         }
         current->userWasInformedAboutResult = true;
     }
-    if(current->getBoard().is_threefold_repetition()) {
+    /*
+    if(current->getBoard()->is_threefold_repetition()) {
         if(mode == MODE_PLAY_WHITE || mode == MODE_PLAY_BLACK) {
             msg->showMessage(tr("Draw"), tr("Threefold repetition"));
             this->onActivateEnterMovesMode();
@@ -506,7 +499,7 @@ void ModeController::onStateChange() {
             msg->showMessage(tr("Draw"), tr("Threefold repetition"));
         }
         current->userWasInformedAboutResult = true;
-    }
+    } */
     if(mode == MODE_ANALYSIS) {
         this->onStateChangeAnalysis();
     } else if(mode == MODE_ENTER_MOVES) {

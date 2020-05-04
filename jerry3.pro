@@ -26,6 +26,7 @@ SOURCES += main.cpp \
     chess/move.cpp \
     chess/game_node.cpp \
     chess/game.cpp \
+    chess/node_pool.cpp \
     chess/pgn_reader.cpp \
     chess/pgn_printer.cpp \
     dialogs/tab_board_style.cpp \
@@ -85,6 +86,7 @@ HEADERS += \
     chess/move.h \
     chess/game_node.h \
     chess/game.h \
+    chess/node_pool.h \
     chess/pgn_reader.h \
     chess/pgn_printer.h \
     dialogs/tab_board_style.h \

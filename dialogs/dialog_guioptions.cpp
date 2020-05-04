@@ -28,7 +28,7 @@
 #include <QTabWidget>
 #include "various/resource_finder.h"
 
-DialogGuiOptions::DialogGuiOptions(ColorStyle *currentStyle, FontStyle *fontStyle, QWidget *parent) :
+DialogGuiOptions::DialogGuiOptions(ColorStyle &currentStyle, FontStyle &fontStyle, QWidget *parent) :
     QDialog(parent) {
 
     setWindowTitle(tr("Set Options"));
@@ -54,5 +54,13 @@ DialogGuiOptions::DialogGuiOptions(ColorStyle *currentStyle, FontStyle *fontStyl
 
     int h = parent->height();
     this->resize(h*0.7, 1);
+}
+
+ColorStyle DialogGuiOptions::getSelectedColorStyle() {
+    return this->tbs->displayBoard->getColorStyle();
+
+}
+FontStyle DialogGuiOptions::getSelectedFontStyle() {
+    return this->tfs->fontStyle;
 }
 

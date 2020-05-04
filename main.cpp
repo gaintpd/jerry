@@ -24,6 +24,7 @@
 #include <iostream>
 #include "chess/board.h"
 #include "chess/move.h"
+#include "chess/node_pool.h"
 #include <bitset>
 #include "funct.h"
 #include "main_window.h"
@@ -39,45 +40,9 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
 
-    /*
-    Profile::durationRunAll = chrono::nanoseconds::zero();
-    Profile::first_part = chrono::nanoseconds::zero();
-    Profile::pseudo_generation = chrono::nanoseconds::zero();
-    Profile::filter_pseudos = chrono::nanoseconds::zero();
-    Profile::filter_legal_check = chrono::nanoseconds::zero();
-    Profile::parse_san_fast = chrono::nanoseconds::zero();
-
-    srand(time(NULL));
-    chess::FuncT *p = new chess::FuncT();
-    auto start = std::chrono::steady_clock::now();
-
-    p->run_pgn_parse_speedtest();
-
-    auto stop = std::chrono::steady_clock::now();
-    std::chrono::duration<double> diff = (stop - start);
-    auto i_millis = std::chrono::duration_cast<std::chrono::nanoseconds>(diff);
-    Profile::durationRunAll += i_millis;
-
-    std::cout << "Duration All       :" << (Profile::durationRunAll.count() ) << '\n';
-    std::cout << "Duration First Part:" << (Profile::first_part.count() ) << '\n';
-    std::cout << "Duration Pseudo Gen:" << (Profile::pseudo_generation.count() ) << '\n';
-    std::cout << "Duration Filter Pse:" << (Profile::filter_pseudos.count() ) << '\n';
-    std::cout << "Duration Filter Leg:" << (Profile::filter_legal_check.count() ) << '\n';
-    std::cout <<std::fixed<< "Duration Parse San :" << (Profile::parse_san_fast.count() ) << '\n';
-*/
-    //p->run_pgn_speedtest();
-    //p->run_zobrist_test();
-    //p->run_pgnt();
-    //p.run_pgn_scant();
-    //p.run_sant();
-    // p->run_ucit();
-    //p->run_pertf();
-
     //QApplication::setAttribute(Qt::AA_EnableHighDpiScaling); // DPI support
     QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
     // from Qt 5.6 onwards
-
-    //qDebug() << "foo";
 
     QApplication app(argc, argv);
     app.setOrganizationName("dkl");
@@ -86,8 +51,9 @@ int main(int argc, char *argv[]) {
     // setting dark style
     // todo: fix bold colors in textedit
     // currently not activated
-    //qApp->setStyle(QStyleFactory::create("Fusion"));
     /*
+    qApp->setStyle(QStyleFactory::create("Fusion"));
+
         QPalette darkPalette;
         darkPalette.setColor(QPalette::Window, QColor(53,53,53));
         darkPalette.setColor(QPalette::WindowText, Qt::white);
@@ -108,30 +74,32 @@ int main(int argc, char *argv[]) {
 
         qApp->setStyleSheet("QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }");
     */
+
     // dark style end
 
 
     // set application icon
     QIcon *app_icon = new QIcon();
+/*
     QString path = ResourceFinder::getPath();
 #ifdef __APPLE__
     path = path.append("/../Resources/");
 #endif
+*/
     app_icon->addFile(":/res/icons/jerry_icon16.png",   QSize(16,16));
     app_icon->addFile(":/res/icons/jerry_icon32.png",   QSize(32,32));
     app_icon->addFile(":/res/icons/jerry_icon48.png",   QSize(48,48));
     app_icon->addFile(":/res/icons/jerry_icon256.png",  QSize(256,256));
     //app_icon->addFile(":/res/icons/icon1024.png", QSize(1024,1024));
     app.setWindowIcon(*app_icon);
-
     //app.setStyle(QStyleFactory::create("Fusion"));
-    //app.setStyle(QStyleFactory::create("Windows"));
+
+    chess::NodePool::reserve();
 
     MainWindow mainWin;
 
     QObject::connect(&app, &QApplication::aboutToQuit, &mainWin, &MainWindow::aboutToQuit);
 
-    //mainWin.centerAndResize();
     mainWin.show();
     mainWin.resetLayout();
 

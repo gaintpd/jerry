@@ -25,208 +25,20 @@
 #include <cstdint>
 #include <QRegularExpression>
 #include <QMap>
+#include "constants.h"
 #include "move.h"
 
 namespace chess {
 
-// empty board
-const uint8_t EMPTY_POS[120] = {
-    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-    0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF,
-    0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF,
-    0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF,
-    0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF,
-    0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF,
-    0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF,
-    0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF,
-    0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF,
-    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
-};
-
-
-// initial board position
-const uint8_t INIT_POS[120] = {
-    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-    0xFF, 0x04, 0x02, 0x03, 0x05, 0x06, 0x03, 0x02, 0x04, 0xFF,
-    0xFF, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0xFF,
-    0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF,
-    0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF,
-    0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF,
-    0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF,
-    0xFF, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81, 0xFF,
-    0xFF, 0x84, 0x82, 0x83, 0x85, 0x86, 0x83, 0x82, 0x84, 0xFF,
-    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
-};
-
-// attack table
-// the index of this array corresponds to the distance
-// between two squares of the board (note the board is
-// encoded as a one dim array of size 120, where A1 = 21, H1 = 28
-// A8 = 91, A8 = 98.
-// the value denotes whether an enemy rook, biship knight, queen, king
-// on one square can attack the other square. The following encoding
-// is used:
-// Bitposition    Piece
-// 0              Knight
-// 1              Bishop
-// 2              Rook
-// 3              Queen
-// 4              King
-// e.g. distance one, i.e. index 1 (=left, up, down, right square) has
-// value 0x1C = MSB 00011100 LSB, i.e. king, queen, rook can
-// potentially attack
-const uint8_t ATTACK_TABLE[78] = {
-    0x00, 0x1C, 0x0C, 0x0C, 0x0C, 0x0C, 0x0C, 0x0C, 0x01, 0x1a,
-    0x1C, 0x1A, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0a, 0x01,
-    0x0C, 0x01, 0x0A, 0x00, 0x00, 0x00, 0x00, 0x0a, 0x00, 0x00,
-    0x0C, 0x00, 0x00, 0x0A, 0x00, 0x00, 0x0a, 0x00, 0x00, 0x00,
-    0x0C, 0x00, 0x00, 0x00, 0x0A, 0x0a, 0x00, 0x00, 0x00, 0x00,
-    0x0C, 0x00, 0x00, 0x00, 0x0a, 0x0A, 0x00, 0x00, 0x00, 0x00,
-    0x0C, 0x00, 0x00, 0x0a, 0x00, 0x00, 0x0A, 0x00, 0x00, 0x00,
-    0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0A
-};
-
-const uint8_t IDX_BPAWN = 0;
-const uint8_t IDX_WPAWN = 1;
-const uint8_t IDX_KNIGHT = 2;
-const uint8_t IDX_BISHOP = 3;
-const uint8_t IDX_ROOK = 4;
-const uint8_t IDX_QUEEN = 5;
-const uint8_t IDX_KING = 6;
-
-// first dim is for different piece types
-// [piece_type[0] is DCOUNT (as in Byte Magazine paper)
-// [piece_type[1] ... [piece_type][4] resp.
-// [piece_type[1] ... [piece_type][8] contain
-// DPOINT table
-const int8_t DIR_TABLE[7][9] = {
-    { 4, -10, -20, -11, -9 ,   0,   0,   0,   0 }, // max 4 black pawn directions, rest 0's
-    { 4, +10, +20, +11, +9 ,   0,   0,   0,   0 }, // max 4 white pawn directions, rest 0's
-    { 8, -21, -12, +8 , +19, +21, +12, -8, -19 }, // 8 knight directions
-    { 4, +9 , +11, -11, -9 ,   0,   0,   0,   0 }, // 4 bishop directions
-    { 4, +10, -10, +1 , -1 ,   0,   0,   0,   0 }, // 4 rook directions
-    { 8, +9 , +11, -11, -9 ,   +10, -10, +1, -1 }, // 8 queen directions
-    { 8, +9 , +11, -11, -9 ,   +10, -10, +1, -1 }  // 8 king directions (= queen dir's)
-};
-
-// players
-const bool WHITE = false;
-const bool BLACK = true;
-
-// bit positions of flags
-const uint8_t COLOR_FLAG = 7;
-//const uint8_t CASTLE_FLAG = 4;
-//const uint8_t MOVED_FLAG = 4;
-
-// bit index positions for castling right uint8_t
-// bit is set means castling is possible
-const uint8_t CASTLE_WKING_POS = 0;
-const uint8_t CASTLE_WQUEEN_POS = 1;
-const uint8_t CASTLE_BKING_POS = 2;
-const uint8_t CASTLE_BQUEEN_POS = 3;
-
-const QString STARTING_FEN = QString("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-
-// board positions
-const uint8_t A1 = 21;
-const uint8_t A2 = 31;
-const uint8_t A3 = 41;
-const uint8_t A4 = 51;
-const uint8_t A5 = 61;
-const uint8_t A6 = 71;
-const uint8_t A7 = 81;
-const uint8_t A8 = 91;
-
-const uint8_t B1 = 22;
-const uint8_t B2 = 32;
-const uint8_t B3 = 42;
-const uint8_t B4 = 52;
-const uint8_t B5 = 62;
-const uint8_t B6 = 72;
-const uint8_t B7 = 82;
-const uint8_t B8 = 92;
-
-const uint8_t C1 = 23;
-const uint8_t C2 = 33;
-const uint8_t C3 = 43;
-const uint8_t C4 = 53;
-const uint8_t C5 = 63;
-const uint8_t C6 = 73;
-const uint8_t C7 = 83;
-const uint8_t C8 = 93;
-
-const uint8_t D1 = 24;
-const uint8_t D2 = 34;
-const uint8_t D3 = 44;
-const uint8_t D4 = 54;
-const uint8_t D5 = 64;
-const uint8_t D6 = 74;
-const uint8_t D7 = 84;
-const uint8_t D8 = 94;
-
-const uint8_t E1 = 25;
-const uint8_t E2 = 35;
-const uint8_t E3 = 45;
-const uint8_t E4 = 55;
-const uint8_t E5 = 65;
-const uint8_t E6 = 75;
-const uint8_t E7 = 85;
-const uint8_t E8 = 95;
-
-const uint8_t F1 = 26;
-const uint8_t F2 = 36;
-const uint8_t F3 = 46;
-const uint8_t F4 = 56;
-const uint8_t F5 = 66;
-const uint8_t F6 = 76;
-const uint8_t F7 = 86;
-const uint8_t F8 = 96;
-
-const uint8_t G1 = 27;
-const uint8_t G2 = 37;
-const uint8_t G3 = 47;
-const uint8_t G4 = 57;
-const uint8_t G5 = 67;
-const uint8_t G6 = 77;
-const uint8_t G7 = 87;
-const uint8_t G8 = 97;
-
-const uint8_t H1 = 28;
-const uint8_t H2 = 38;
-const uint8_t H3 = 48;
-const uint8_t H4 = 58;
-const uint8_t H5 = 68;
-const uint8_t H6 = 78;
-const uint8_t H7 = 88;
-const uint8_t H8 = 98;
-
-const uint8_t WHITE_KING = 0x06;
-const uint8_t WHITE_QUEEN = 0x05;
-const uint8_t WHITE_ROOK = 0x04;
-const uint8_t WHITE_BISHOP = 0x03;
-const uint8_t WHITE_KNIGHT = 0x02;
-const uint8_t WHITE_PAWN = 0x01;
-const uint8_t WHITE_ANY_PIECE = 0x07;
-
-const uint8_t BLACK_KING = 0x86;
-const uint8_t BLACK_QUEEN = 0x85;
-const uint8_t BLACK_ROOK = 0x84;
-const uint8_t BLACK_BISHOP = 0x83;
-const uint8_t BLACK_KNIGHT = 0x82;
-const uint8_t BLACK_PAWN = 0x81;
-const uint8_t BLACK_ANY_PIECE = 0x87;
-
-const QRegularExpression FEN_CASTLES_REGEX = QRegularExpression("^-|[KQABCDEFGH]{0,2}[kqabcdefgh]{0,2}$");
-const QRegularExpression SAN_REGEX = QRegularExpression("^([NBKRQ])?([a-h])?([1-8])?x?([a-h][1-8])(=?[nbrqNBRQ])?(\\+|#)?$");
 
 class Board
 {
 
 public:
+
+    static int alpha_to_pos(QChar alpha);
+    static QPoint internal_to_xy(int internal_coord);
+    static int xy_to_internal(int x, int y);
 
     /**
      * @brief turn is either == WHITE or == BLACK
@@ -269,16 +81,7 @@ public:
     Board(const QString &fen_string);
 
     /**
-     * @brief Board creates new Board copying position of the pieces of the supplied
-     *              board. Parameters (i.e. undo history, move numbers etc. are _not_
-     *              copied, just the position of the pieces
-     * @param board The board where the position of pieces is taken from
-     */
-    //Board(Board *board);
-
-    /**
      * @brief copy constructor to create deep copy of board
-     *        TODO: do we really need this?! default might suffice after refactoring
      * @param other
      */
    Board(const Board &other);
@@ -287,15 +90,7 @@ public:
      * @brief fen returns FEN string of current board
      * @return
      */
-    QString fen();
-
-    /**
-     * @brief copy_and_apply applies move and returns a deep copy of current board
-     *        no check of legality. always call board.is_legal(m) before applying move
-     * @param m move to apply
-     * @return copy of board
-     */
-    //Board* copy_and_apply(const Move &m);
+    QString fen() const;
 
     /**
      * @brief apply applies supplied move. doesn't check for legality
@@ -319,7 +114,7 @@ public:
      */
     QVector<Move> pseudo_legal_moves();
 
-    QVector<Move> pseudo_legal_moves(uint8_t to_square, uint8_t piece_type);
+    QVector<Move> pseudo_legal_moves(int to_square, int piece_type);
 
     /**
      * @brief pseudo_legal_moves_from returns move list with pseudo legal moves
@@ -332,19 +127,14 @@ public:
      * @return pseudo legal move list
      */
     QVector<Move> pseudo_legal_moves_from(int from_square_idx, bool with_castles, bool turn_color);
-    QVector<Move> pseudo_legal_moves_from_pt(int from_square, uint8_t to_square, uint8_t piece_type, bool with_castles, bool turn);
-
-    QVector<Move> pseudo_legal_moves_san_parse(uint8_t to_square,
-                                            uint8_t piece_type,
-                                            bool is_capture
-                                            );
+    QVector<Move> pseudo_legal_moves_to(int to_square, int piece_type, bool with_castles, bool turn);
 
     /**
      * @brief legal_moves returns move list of all legal moves in position
      * @return move list
      */
     QVector<Move> legal_moves();
-    QVector<Move> legal_moves(uint8_t to_square, uint8_t piece_type);
+    QVector<Move> legal_moves(int to_square, int piece_type);
 
     /**
      * @brief legal_moves_from computes all legal moves originating in from square
@@ -353,14 +143,14 @@ public:
      */
     QVector<Move> legal_moves_from(int from_square);
 
+    QVector<Move> legals_from_pseudos(QVector<Move> &pseudos);
+
     /**
      * @brief pseudo_is_legal_move checks whether supplied pseudo legal move is legal
      *              in current position. Does NOT check whether supplied move is pseudo legal!!!
      * @return result of checking legality
      */
     bool pseudo_is_legal_move(const Move &);
-
-    // extern: required
 
     /**
      * @brief is_legal_move checks whether the supplied move is legal in the board
@@ -376,12 +166,10 @@ public:
      */
     bool is_legal_and_promotes(const Move&);
 
-    // end extern required
-
     /**
      * @brief is_checkmate tests whether player who is on the move in current position
      *                     is in checkmate (i.e. is in check but has not legal move
-     *                     escaping the check)
+     *                     escaping thfsane check)
      * @return true, if player in checkmate, false otherwise.
      */
     bool is_checkmate();
@@ -394,17 +182,12 @@ public:
      */
     bool is_stalemate();
 
-
     /**
      * @brief is_check checks if the player whose on the move in the current position
      *                 is in check
      * @return true, if player in check, false otherwise.
      */
     bool is_check();
-
-
-
-
 
     /**
      * @brief san computes the standard algebraic notation for the supplied move
@@ -416,31 +199,19 @@ public:
     QString san(const Move &m);
 
     /**
-     * @brief parse_san Given board position and san string, parses the san string
-     *        and computes a move for it. Throws std::invalid_argument if the
-     *        supplied san string cannot be parsed successfully (i.e. illegal move,
-     *        illegal formatted string etc.)
-     * @param s string containing a san representation of a move (no move number!)
-     * @return move object (if parsed successfully)
-     */
-    Move parse_san(QString s);
-
-    Move parse_san_fast(QString s);
-
-    /**
      * @brief movePromotes checks if the supplied move (ignoring the promotion value stored
      *                     in the move is a pawn move to the 8th / 1st rank, i.e. promoting)
      * @param m move of concern
      * @return true if move promotes, false otherwise
      */
-    bool movePromotes(const Move&m);
+    bool move_promotes(const Move&m) const;
 
     /**
      * @brief is_initial_position checks whether the current placement of the pieces
      *                            corresponds to the inital chess position.
      * @return true if initial position, false otherwise.
      */
-    bool is_initial_position();
+    bool is_initial_position() const;
 
     /**
      * @brief can_castle_wking checks whether the castling rights for the
@@ -448,25 +219,25 @@ public:
      *                         to castle kingside in this position.
      * @return true if king may castle, false otherwise.
      */
-    bool can_castle_wking();
+    bool can_castle_wking() const;
 
     /**
      * @brief can_castle_bking see can_castle_wking
      * @return
      */
-    bool can_castle_bking();
+    bool can_castle_bking() const;
 
     /**
      * @brief can_castle_wqueen see can_castle_wking
      * @return
      */
-    bool can_castle_wqueen();
+    bool can_castle_wqueen() const;
 
     /**
      * @brief can_castle_bqueen see can_castle_wking
      * @return
      */
-    bool can_castle_bqueen();
+    bool can_castle_bqueen() const;
 
     /**
      * @brief is_undo_available checks whether the current board position
@@ -475,7 +246,7 @@ public:
      *                          and return to the previous board state.
      * @return true if info is available (i.e. undo() may be called), false otherwise
      */
-    bool is_undo_available();
+    bool is_undo_available() const;
 
     /**
      * @brief set_castle_wking set/unset the right of the white king to castle
@@ -508,7 +279,7 @@ public:
      * @param y int in the range (0,7) representing the row (i.e. 0 - 7)
      * @param piece the piece type (constants such as WHITE_KING, BLACK_QUEEN, EMPTY etc.)
      */
-    void set_piece_at(int x, int y, uint8_t piece);
+    void set_piece_at(int x, int y, int piece);
 
     /**
      * @brief get_piece_at gets piece a the supplied board position (x,y)
@@ -516,10 +287,10 @@ public:
      * @param y int in the range (0,7) representing the row (i.e. 0 - 7)
      * @return piece type encoded as uint8_t (i.e. BLACK_QUEEN or EMPTY)
      */
-    uint8_t get_piece_at(int x, int y);
+    int get_piece_at(int x, int y) const;
 
     /**
-     * @brief get_piece_type_at get the piece type as uint8_t at supplied
+     * @brief get_piece_type_at get the piece type as int at supplied
      *                          position. piece type is always the piece
      *                          encoded as if it were are white piece (see
      *                          KING, QUEEN, or empty).
@@ -527,7 +298,7 @@ public:
      * @param y int in the range (0,7) representing the column (i.e. a - h)
      * @return piece encoding
      */
-    uint8_t get_piece_type_at(int x, int y);
+    int get_piece_type_at(int x, int y) const;
 
     /**
      * @brief get_piece_color_at returns color (i.e. WHITE or BLACK)
@@ -538,7 +309,7 @@ public:
      * @param y row
      * @return piece color
      */
-    bool get_piece_color_at(int x, int y);
+    bool get_piece_color_at(int x, int y) const;
 
     /**
      * @brief piece_color same as get_piece_color_at but uses here
@@ -547,7 +318,7 @@ public:
      * @param idx internal board encoding specifying field position
      * @return piece color
      */
-    bool piece_color(uint8_t idx);
+    bool get_piece_color(int idx) const;
 
     /**
      * @brief piece_at returns the piece at idx in internal board format
@@ -555,14 +326,21 @@ public:
      * @param idx internal board encoding specifying field position
      * @return piece in internal format (i.e. 0x00 ... 0x06 and 0x81 ... 0x86
      */
-    uint8_t piece_at(uint8_t idx);
+    int get_piece_at(int idx) const;
 
     /**
      * @brief piece_type see piece_color and get_piece_type_at()
      * @param idx
      * @return
      */
-    uint8_t piece_type(uint8_t idx);
+    int get_piece_type(int idx) const;
+
+    /**
+     * @brief get_king_pos get position of king
+     * @param king either white or black king
+     * @return position of king in internal board format
+     */
+    int get_king_pos(int king) const;
 
     /**
      * @brief is_consistent rudimentary check of position consistency
@@ -594,32 +372,35 @@ public:
      *                  or have moved
      * @return false, if black king or rook have moved from inital pos, true otherwise.
      */
-    bool is_black_king_castle_right_lost();
+    bool is_black_king_castle_right_lost() const;
 
     /**
      * @brief is_black_queen_castle_right_lost see is_black_king_castle_right_lost()
      * @return
      */
-    bool is_black_queen_castle_right_lost();
+    bool is_black_queen_castle_right_lost() const;
 
     /**
      * @brief is_white_king_castle_right_lost see is_black_king_castle_right_lost()
      * @return
      */
-    bool is_white_king_castle_right_lost();
+    bool is_white_king_castle_right_lost() const;
 
     /**
      * @brief is_white_queen_castle_right_lost see is_black_king_castle_right_lost()
      * @return
      */
-    bool is_white_queen_castle_right_lost();
+    bool is_white_queen_castle_right_lost() const;
 
-    uint8_t get_ep_target();
+    int get_ep_target() const;
 
-    bool can_claim_fifty_moves();
-    bool is_threefold_repetition();
+    bool can_claim_fifty_moves() const;
 
-    quint64 zobrist();
+    quint64 get_zobrist();
+    quint64 get_pos_hash();
+
+    QString print_raw();
+
 
 private:
     /**
@@ -629,21 +410,29 @@ private:
      * see "First Steps in Computer Chess Programming"
      * BYTE Magazine, October 1978
      */
-    static const uint8_t init_pos [120];
+    static const int init_pos [120];
     /**
      * @brief board stores the current position
      * essentially linearized 10x12 array
      */
-    uint8_t board[120];
+    int board[120];
+
     /**
      * @brief old_board stores the previous position for undo()
      */
-    uint8_t old_board[120];
+    int old_board[120];
+
+    int piece_list[2][7][10];
 
     /**
      * @brief turn is either WHITE or BLACK
      */
     bool undo_available;
+
+    bool zobrist_initialized;
+    bool pos_hash_initialized;
+    quint64 zobrist;
+    quint64 pos_hash;
 
     /**
      * @brief castling_rights stores the castling rights
@@ -651,34 +440,43 @@ private:
      * CASTLE_WKING_POS, CASTLE_WQUEEN_POS, CASTLE_BKING_POS
      * and CASTLE_BQUEEN_POS
      */
-    uint8_t castling_rights;
-    uint8_t prev_castling_rights;
+    bool castle_wking_ok;
+    bool castle_wqueen_ok;
+    bool castle_bking_ok;
+    bool castle_bqueen_ok;
 
-    uint8_t en_passent_target;
-    uint8_t prev_en_passent_target;
+    bool prev_castle_wking_ok;
+    bool prev_castle_wqueen_ok;
+    bool prev_castle_bking_ok;
+    bool prev_castle_bqueen_ok;
+
+    int en_passent_target;
+    int prev_en_passent_target;
 
     int prev_halfmove_clock;
 
-    bool is_empty(uint8_t idx);
-    bool is_offside(uint8_t idx);
-    bool is_white_at(uint8_t idx);
+    bool is_empty(int idx) const;
+    bool is_offside(int idx) const;
+    bool is_white_at(int idx) const;
     bool is_attacked(int idx, bool attacker_color);
-    bool castles_wking(const Move &m);
-    bool castles_bking(const Move &m);
-    bool castles_wqueen(const Move &m);
-    bool castles_bqueen(const Move &m);
-    uint8_t piece_from_symbol(QChar c);
-    QChar piece_to_symbol(uint8_t idx);
-    QString idx_to_str(int idx);
-    uint8_t alpha_to_pos(QChar alpha);
+    bool is_castles_wking(const Move &m) const;
+    bool is_castles_bking(const Move &m) const;
+    bool is_castles_wqueen(const Move &m) const;
+    bool is_castles_bqueen(const Move &m) const;
+    int piece_from_symbol(QChar c) const;
+    QChar piece_to_symbol(int piece) const;
+    QString idx_to_str(int idx) const;
 
-    QMap<quint64, int> transpositionTable;
+    void init_piece_list();
 
-    int zobrist_piece_type(uint8_t piece);
+    int zobrist_piece_type(int piece) const;
 
-    void update_transposition_table();
+    void remove_from_piece_list(bool color, int piece_type, int idx);
+    void add_to_piece_list(bool color, int piece_type, int idx);
 
     friend std::ostream& operator<<(std::ostream& strm, const Board &b);
+
+
 
 };
 

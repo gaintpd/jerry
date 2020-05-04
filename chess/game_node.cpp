@@ -45,6 +45,14 @@ GameNode::GameNode() {
 
 }
 
+void GameNode::reset() {
+
+    this->parent = nullptr;
+    this->depthCache = 0;
+    this->userWasInformedAboutResult = false;
+    this->variations.clear();
+}
+
 GameNode::~GameNode() {
     //delete this->m;
     //for(int i=0;i<this->arrows->size();i++) {
@@ -124,8 +132,8 @@ QString GameNode::getComment() {
     return this->comment;
 }
 
-Board GameNode::getBoard() {
-    return this->board;
+Board* GameNode::getBoard() {
+    return &(this->board);
 }
 
 void GameNode::setBoard(Board &b) {

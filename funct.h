@@ -33,22 +33,22 @@ class FuncT : public QObject
 
 public:
     explicit FuncT(QObject *parent = 0);
-    void run_pgnt();
-    void run_sant();
+    //void run_pgnt();
+    //void run_sant();
     void run_pertf();
     void run_pgn_scant();
     void run_ucit();
-    void run_zobrist_test();
+    //void run_zobrist_test();
     void run_polyglot();
     void run_rand();
 
-    void run_pgn_speedtest();
+    //void run_pgn_speedtest();
     void run_pgn_parse_speedtest();
 
 
 private:
     int count_moves(Board b, int depth);
-    void rwrw_pgn(const QString &fn_in, const QString &fn_out);
+    //void rwrw_pgn(const QString &fn_in, const QString &fn_out);
 
 signals:
 

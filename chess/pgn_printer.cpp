@@ -63,7 +63,7 @@ void PgnPrinter::writeLine(const QString &line) {
     this->pgn.append(line.trimmed());
 }
 
-void PgnPrinter::writeGame(Game &g, const QString &filename) {
+void PgnPrinter::writeGame(Game *g, const QString &filename) {
 
     QStringList pgn = this->printGame(g);
     QFile fOut(filename);
@@ -83,52 +83,50 @@ void PgnPrinter::writeGame(Game &g, const QString &filename) {
     }
 }
 
-void PgnPrinter::printHeaders(QStringList &pgn, Game &g) {
-    QString tag = "[Event \"" + g.getHeader("Event") + "\"]";
+void PgnPrinter::printHeaders(QStringList &pgn, Game *g) {
+    QString tag = "[Event \"" + g->getHeader("Event") + "\"]";
     pgn.append(tag);
-    tag = "[Site \"" + g.getHeader("Site") + "\"]";
+    tag = "[Site \"" + g->getHeader("Site") + "\"]";
     pgn.append(tag);
-    tag = "[Date \"" + g.getHeader("Date") + "\"]";
+    tag = "[Date \"" + g->getHeader("Date") + "\"]";
     pgn.append(tag);
-    tag = "[Round \"" + g.getHeader("Round") + "\"]";
+    tag = "[Round \"" + g->getHeader("Round") + "\"]";
     pgn.append(tag);
-    tag = "[White \"" + g.getHeader("White") + "\"]";
+    tag = "[White \"" + g->getHeader("White") + "\"]";
     pgn.append(tag);
-    tag = "[Black \"" + g.getHeader("Black") + "\"]";
+    tag = "[Black \"" + g->getHeader("Black") + "\"]";
     pgn.append(tag);
-    tag = "[Result \"" + g.getHeader("Result") + "\"]";
+    tag = "[Result \"" + g->getHeader("Result") + "\"]";
     pgn.append(tag);
-    QStringList all_tags = g.getTags();
+    QStringList all_tags = g->getTags();
     for(int i=0;i<all_tags.count();i++) {
         QString tag_i = all_tags.at(i);
         if(tag_i != "Event" && tag_i != "Site" && tag_i != "Date" && tag_i != "Round"
                 && tag_i != "White" && tag_i != "Black" && tag_i != "Result" )
         {
-            QString value_i = g.getHeader(tag_i);
+            QString value_i = g->getHeader(tag_i);
             QString tag_val = "[" + tag_i + " \"" + value_i + "\"]";
             pgn.append(tag_val);
         }
     }
     // add fen string tag if root is not initial position
-    chess::Board root = g.getRootNode()->getBoard();
-    if(!root.is_initial_position()) {
-        QString tag = "[FEN \"" + root.fen() + "\"]";
+    chess::Board *root = g->getRootNode()->getBoard();
+    if(!root->is_initial_position()) {
+        QString tag = "[FEN \"" + root->fen() + "\"]";
         pgn.append(tag);
     }
 
 }
 
-QStringList PgnPrinter::printGame(Game &g) {
+QStringList PgnPrinter::printGame(Game *g) {
 
     this->reset();
 
-    //pgn = new QStringList();
-
     // first print the headers
-    this->printHeaders(pgn, g);
+    this->printHeaders(this->pgn, g);
 
     this->writeLine(QString(""));
-    GameNode *root = g.getRootNode();
+    GameNode *root = g->getRootNode();
 
     // special case if the root node has
     // a comment before the actual game starts
@@ -136,26 +134,28 @@ QStringList PgnPrinter::printGame(Game &g) {
         this->printComment(root->getComment());
     }
 
-    this->printGameContent((*root));
-    this->printResult(g.getResult());
+    this->printGameContent(root);
+    this->printResult(g->getResult());
     this->pgn.append(this->currentLine);
 
     return this->pgn;
 
 }
 
-void PgnPrinter::printMove(Board &b, Move &m) {
-    if(b.turn == WHITE) {
-        QString tkn = QString::number(b.fullmove_number);
+void PgnPrinter::printMove(GameNode *g) {
+    Board *b = g->getBoard();
+    Move m = g->getMove();
+    if(b->turn == WHITE) {
+        QString tkn = QString::number(b->fullmove_number);
         tkn.append(QString(". "));
         this->writeToken(tkn);
     }
     else if(this->forceMoveNumber) {
-        QString tkn = QString::number(b.fullmove_number);
+        QString tkn = QString::number(b->fullmove_number);
         tkn.append(QString("... "));
         this->writeToken(tkn);
     }
-    this->writeToken((b.san(m)).append(QString(" ")));
+    this->writeToken((b->san(m)).append(QString(" ")));
     this->forceMoveNumber = false;
 }
 
@@ -201,16 +201,13 @@ void PgnPrinter::printComment(const QString &comment) {
 
 
 
-void PgnPrinter::printGameContent(GameNode &g) {
-
-    Board b = g.getBoard();
+void PgnPrinter::printGameContent(GameNode *g) {
 
     // first write mainline move, if there are variations
-    int cntVar = g.getVariations().count();
+    int cntVar = g->getVariations().count();
     if(cntVar > 0) {
-        GameNode* main_variation = g.getVariation(0);
-        Move m = main_variation->getMove();
-        this->printMove(b,m);
+        GameNode* main_variation = g->getVariation(0);
+        this->printMove(g);
         // write nags
         QVector<int> nags = main_variation->getNags();
         for(int j=0;j<nags.count();j++) {
@@ -226,10 +223,9 @@ void PgnPrinter::printGameContent(GameNode &g) {
     // now handle all variations (sidelines)
     for(int i=1;i<cntVar;i++) {
         // first create variation start marker, and print the move
-        GameNode *var_i = g.getVariation(i);
+        GameNode *var_i = g->getVariation(i);
         this->beginVariation();
-        chess::Move m_temp = var_i->getMove();
-        this->printMove(b,m_temp);
+        this->printMove(var_i);
         // next print nags
         QVector<int> nags = var_i->getNags();
         for(int j=0;j<nags.count();j++) {
@@ -242,7 +238,7 @@ void PgnPrinter::printGameContent(GameNode &g) {
         }
 
         // recursive call for all childs
-        this->printGameContent(*var_i);
+        this->printGameContent(var_i);
 
         // print variation end
         this->endVariation();
@@ -250,8 +246,8 @@ void PgnPrinter::printGameContent(GameNode &g) {
 
     // finally do the mainline
     if(cntVar > 0) {
-        GameNode* main_variation = g.getVariation(0);
-        this->printGameContent((*main_variation));
+        GameNode* main_variation = g->getVariation(0);
+        this->printGameContent(main_variation);
     }
 }
 

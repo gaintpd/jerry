@@ -7,7 +7,7 @@
 #include <QDebug>
 #include "tab_font_style.h"
 
-TabFontStyle::TabFontStyle(FontStyle *fontStyle, QWidget *parent) : QWidget(parent)
+TabFontStyle::TabFontStyle(FontStyle &fontStyle, QWidget *parent) : QWidget(parent)
 {
 
     this->fontStyle = fontStyle;
@@ -57,18 +57,18 @@ TabFontStyle::TabFontStyle(FontStyle *fontStyle, QWidget *parent) : QWidget(pare
 
     this->setLayout(mainLayout);
 
-    if(fontStyle->moveWindowFontSize.isEmpty()) {
+    if(fontStyle.moveWindowFontSize.isEmpty()) {
         radioGameNotationDefaultSize->setChecked(true);
     } else {
         radioGameNotationcustomSize->setChecked(true);
-        sizeBoxGameNotation->setCurrentText(fontStyle->moveWindowFontSize);
+        sizeBoxGameNotation->setCurrentText(fontStyle.moveWindowFontSize);
     }
 
-    if(fontStyle->engineOutFontSize.isEmpty()) {
+    if(fontStyle.engineOutFontSize.isEmpty()) {
         radioEngineOutDefaultSize->setChecked(true);
     } else {
         radioEngineOutcustomSize->setChecked(true);
-        sizeBoxEngineOut->setCurrentText(fontStyle->engineOutFontSize);
+        sizeBoxEngineOut->setCurrentText(fontStyle.engineOutFontSize);
     }
 
 
@@ -83,30 +83,30 @@ TabFontStyle::TabFontStyle(FontStyle *fontStyle, QWidget *parent) : QWidget(pare
 }
 
 void TabFontStyle::onSelectDefaultGameNotationFontSize() {
-    this->fontStyle->moveWindowFontSize = "";
+    this->fontStyle.moveWindowFontSize = "";
 }
 
 void TabFontStyle::onSelectCustomGameNotationFontSize() {
-    this->fontStyle->moveWindowFontSize = this->sizeBoxGameNotation->currentText();
+    this->fontStyle.moveWindowFontSize = this->sizeBoxGameNotation->currentText();
 }
 
 void TabFontStyle::onSizeBoxGameNotationChange(const QString &text) {
     if(this->radioGameNotationcustomSize->isChecked()) {
-        this->fontStyle->moveWindowFontSize = text;
+        this->fontStyle.moveWindowFontSize = text;
     }
 }
 
 void TabFontStyle::onSelectDefaultEngineOutFontSize() {
-    this->fontStyle->engineOutFontSize = "";
+    this->fontStyle.engineOutFontSize = "";
 }
 
 void TabFontStyle::onSelectCustomEngineOutFontSize() {
-    this->fontStyle->engineOutFontSize = this->sizeBoxEngineOut->currentText();
+    this->fontStyle.engineOutFontSize = this->sizeBoxEngineOut->currentText();
 }
 
 void TabFontStyle::onSizeBoxEngineOutChange(const QString &text) {
     if(this->radioEngineOutcustomSize->isChecked()) {
-        this->fontStyle->engineOutFontSize = text;
+        this->fontStyle.engineOutFontSize = text;
     }
 }
 

@@ -28,26 +28,15 @@
 
 namespace chess {
 
-// general piece encodings
-const uint8_t EMPTY = 0;
-const uint8_t PAWN = 1;
-const uint8_t KNIGHT = 2;
-const uint8_t BISHOP = 3;
-const uint8_t ROOK = 4;
-const uint8_t QUEEN = 5;
-const uint8_t KING = 6;
-const uint8_t ANY_PIECE = 8;
-
 
 class Move
 {
 
 public:
 
-    uint8_t from;
-    uint8_t to;
-    uint8_t promotion_piece;
-    QString uci_string;
+    int from;
+    int to;
+    int promotion_piece;
     bool is_null;
 
     /**
@@ -61,7 +50,16 @@ public:
      * @param from index of source field
      * @param to index of target field
      */
-    Move(uint8_t from, uint8_t to);
+    Move(int from, int to);
+
+    /**
+     * @brief Move creates move, supplied parameters in (x,y)
+     *             board coordinate format, in range (0..7,0...), i.e. (0,3) = a4
+     *             Does not check any validity
+     * @param from index of source field
+     * @param to index of target field
+     */
+    Move(int from_col, int from_row, int to_col, int to_row);
 
     /**
      * @brief Move creates a move where the piece transforms
@@ -74,7 +72,22 @@ public:
      * @param promotion_piece piece type of promotion piece. doesn't encode color, i.e.
      *              must be in range (>= 0, <= 5), cf. general piece encodings above
      */
-    Move(uint8_t from, uint8_t to, uint8_t promotion_piece);
+    Move(int from, int to, int promotion_piece);
+
+    /**
+     * @brief Move creates a move where the piece transforms
+     *             into promotion piece upon placement on target square.
+     *             promotion_piece must be one from 'R', 'N', 'B', 'Q'
+     *             Does not check any validity.
+     *             supplied parameters in (x,y)
+     *             board coordinate format, in range (0..7,0...), i.e. (0,3) = a4
+     * @param from_col
+     * @param from_row
+     * @param to_col
+     * @param to_row
+     * @param promotion_piece
+     */
+    Move(int from_col, int from_row, int to_col, int to_row, QChar promotion_piece);
 
     /**
      * @brief Move creates a move with en passent capture
@@ -85,25 +98,25 @@ public:
      * @param to
      * @param en_passent
      */
-    Move(uint8_t from, uint8_t to, bool en_passent);
+    Move(int from, int to, bool en_passent);
 
     /**
      * @brief Move creates move from uci string (e.g. g1f3, d7d8Q etc.)
      * @param uci supplied uci string
      */
-    Move(QString uci);
+    Move(const QString uci);
 
     /**
      * @brief Move creates a deep copy of supplied move
      * @param m the move to copy
      */
-    Move(const Move& m);
+    //Move(const Move& m);
 
     /**
      * @brief uci get uci string (e.g. g1f3, d7d8Q etc.) of current move
      * @return uci string
      */
-    QString uci();
+    QString uci() const;
 
     /**
      * @brief operator == compares two moves by checking whether they
@@ -121,13 +134,13 @@ public:
      */
     bool operator!=(const Move &other) const;
 
-    QPoint fromAsXY();
-    QPoint toAsXY();
+    QPoint fromAsXY() const;
+    QPoint toAsXY() const;
 
 private:
 
-    uint8_t alpha_to_pos(QChar alpha);
-    std::tuple<char, uint8_t> get_alphanum_coord(uint8_t internal_pos);
+    int alpha_to_pos(QChar alpha);
+    //std::tuple<char, int> get_alphanum_coord(int internal_pos);
     friend std::ostream& operator<<(std::ostream& strm, const Move &m);
 
 };

@@ -64,7 +64,7 @@ int chess::PgnDatabase::appendCurrentGame(chess::Game &game) {
         out << "\n";
         qint64 gamePos = out.pos();
         chess::PgnPrinter printer;
-        QStringList pgn = printer.printGame(game);
+        QStringList pgn = printer.printGame(&game);
         for (int i = 0; i < pgn.size(); ++i) {
             out << pgn.at(i) << '\n';
         }
@@ -173,7 +173,8 @@ QVector<qint64> chess::PgnDatabase::scanPgn(QString &filename, bool isLatin1) {
 
 void chess::PgnDatabase::open(QString &filename) {
 
-    this->isUtf8 = reader.detectUtf8(filename);
+    //this->isUtf8 = reader.detectUtf8(filename);
+    this->isUtf8 = true;
     /*
     const char* utf8 = "UTF-8";
     const char* encoding = reader.detect_encoding(filename);
@@ -201,10 +202,14 @@ int chess::PgnDatabase::getRowCount() {
 }
 
 chess::Game* chess::PgnDatabase::getGameAt(int idx) {
+    chess::Game *g = new chess::Game();
+    return g;
+    /*
     const char* encoding = reader.detect_encoding(filename);
     chess::Game *g = this->reader.readGameFromFile(this->filename, encoding, this->searchedOffsets.at(idx));
     this->lastSelectedIndex = idx;
     return g;
+    */
 }
 
 bool chess::PgnDatabase::pgnHeaderMatches(QFile &file, SearchPattern &pattern, qint64 offset) {

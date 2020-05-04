@@ -26,7 +26,7 @@
 #include <QQueue>
 #include <QProcess>
 #include <QRegularExpression>
-#include "uci_worker.h"
+//#include "uci_worker.h"
 #include "engine_info.h"
 
 const QRegularExpression REG_MOVES = QRegularExpression("\\s[a-z]\\d[a-z]\\d([a-z]{0,1})");

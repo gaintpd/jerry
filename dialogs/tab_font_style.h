@@ -11,7 +11,8 @@ class TabFontStyle : public QWidget
 {
     Q_OBJECT
 public:
-    explicit TabFontStyle(FontStyle *fontStyle, QWidget *parent = nullptr);
+    explicit TabFontStyle(FontStyle &fontStyle, QWidget *parent = nullptr);
+    FontStyle fontStyle;
 
 private:
     QRadioButton *radioGameNotationDefaultSize;
@@ -22,7 +23,6 @@ private:
     QRadioButton *radioEngineOutcustomSize;
     QComboBox *sizeBoxEngineOut;
 
-    FontStyle *fontStyle;
 
 signals:
 

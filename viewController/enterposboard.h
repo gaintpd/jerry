@@ -43,13 +43,13 @@ private:
     //void calculateBoardSize(int *boardSize, int *squareSize);
     void resizeTo(float ratio);
 
-    uint8_t pickupPieces[7][2] = {{chess::WHITE_PAWN, chess::BLACK_PAWN},
+    uint8_t pickupPieces[6][2] = {{chess::WHITE_PAWN, chess::BLACK_PAWN},
                                   {chess::WHITE_KNIGHT, chess::BLACK_KNIGHT},
                                   {chess::WHITE_BISHOP, chess::BLACK_BISHOP},
                                   {chess::WHITE_ROOK, chess::BLACK_ROOK},
                                   {chess::WHITE_QUEEN, chess::BLACK_QUEEN},
-                                  {chess::WHITE_KING, chess::BLACK_KING},
-                                  {chess::WHITE_ANY_PIECE, chess::BLACK_ANY_PIECE}};
+                                  {chess::WHITE_KING, chess::BLACK_KING}};
+                                  //{chess::WHITE_ANY_PIECE, chess::BLACK_ANY_PIECE}};
     uint8_t selectedPiece;
 
 protected:

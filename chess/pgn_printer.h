@@ -41,7 +41,7 @@ public:
      * @param g game to print
      * @return string list of lines of the generated PGN
      */
-    QStringList printGame(Game &g);
+    QStringList printGame(Game *g);
 
     /**
      * @brief writeGame prints the supplied game to PGN format and saves
@@ -51,7 +51,7 @@ public:
      * @param g game to print/save
      * @param filename filename to save to
      */
-    void writeGame(Game &g, const QString &filename);
+    void writeGame(Game *g, const QString &filename);
 
 private:
 
@@ -63,11 +63,11 @@ private:
     void flushCurrentLine();
     void writeToken(const QString &token);
     void writeLine(const QString &token);
-    void printGameContent(GameNode &g);
-    void printMove(Board &board, Move &m);
+    void printGameContent(GameNode *g);
+    void printMove(GameNode *g);
     void printComment(const QString &comment);
     void printNag(int nag);
-    void printHeaders(QStringList &pgn, Game &g);
+    void printHeaders(QStringList &pgn, Game *g);
     void printResult(int result);
     void beginVariation();
     void endVariation();

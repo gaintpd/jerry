@@ -8,7 +8,7 @@ class TabBoardStyle : public QWidget
 {
     Q_OBJECT
 public:
-    explicit TabBoardStyle(ColorStyle *currentStyle, QWidget *parent = nullptr);
+    explicit TabBoardStyle(ColorStyle &currentStyle, QWidget *parent = nullptr);
     PickColorBoard* displayBoard;
 
 signals:

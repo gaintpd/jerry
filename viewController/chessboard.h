@@ -20,11 +20,11 @@ class Chessboard : public QWidget
 
 public:
     explicit Chessboard(QWidget *parent = 0);
-    void setColorStyle(ColorStyle *style);
-    ColorStyle* getColorStyle();
+    void setColorStyle(const ColorStyle &style);
+    ColorStyle getColorStyle();
     void setFlipBoard(bool onOff);
     void setGrabbedPiece(int piece, int color);
-    void setBoard(chess::Board b);
+    void setBoard(chess::Board &b);
     void setArrows(QVector<chess::Arrow> arrows);
     void setColoredFields(QVector<chess::ColoredField> fields);
 
@@ -39,30 +39,28 @@ private:
 protected:
 
     chess::Move lastMove;
-    QPoint* moveSrc;
+    QPoint moveSrc;
     bool drawGrabbedPiece;
     bool drawGrabbedArrow;
-    struct GrabbedPiece *grabbedPiece;
-    struct chess::Arrow *grabbedArrow;
+    struct GrabbedPiece grabbedPiece;
+    struct chess::Arrow grabbedArrow;
     bool flipBoard;
 
-    QColor *arrowGrabColor;
-    QColor *lastMoveColor;
+    QColor arrowGrabColor;
+    QColor lastMoveColor;
 
-    ColorStyle *style;
+    ColorStyle style;
     int borderWidth;
     PieceImages *pieceImages;
     chess::Board board;
 
-    // device pixel ratio
     qreal dpr;
 
     void drawBoard(QPaintEvent *event, QPainter *painter);
-    void calculateBoardSize(int *boardSize, int *squareSize);
+    QPoint calculateBoardSize();
     void drawArrow(const chess::Arrow &ai, int boardOffsetX, int boardOffsetY, int squareSize, QPainter *painter);
 
     void paintEvent(QPaintEvent *e);
-    //void resizeEvent(QResizeEvent *e);
 
 signals:
 

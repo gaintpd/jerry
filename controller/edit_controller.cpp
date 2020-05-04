@@ -37,7 +37,7 @@ EditController::EditController(GameModel *gameModel, QWidget *parent) :
 void EditController::copyGameToClipBoard() {
 
     chess::PgnPrinter *pgnPrinter = new chess::PgnPrinter();
-    QString pgn = pgnPrinter->printGame(*this->gameModel->getGame()).join("\n");
+    QString pgn = pgnPrinter->printGame(this->gameModel->getGame()).join("\n");
     QClipboard *clipboard = QApplication::clipboard();
     clipboard->setText(pgn);
 
@@ -45,13 +45,14 @@ void EditController::copyGameToClipBoard() {
 
 void EditController::copyPositionToClipBoard() {
 
-    QString fen = this->gameModel->getGame()->getCurrentNode()->getBoard().fen();
+    QString fen = this->gameModel->getGame()->getCurrentNode()->getBoard()->fen();
     QClipboard *clipboard = QApplication::clipboard();
     clipboard->setText(fen);
 
 }
 
 void EditController::paste() {
+    /*
     QClipboard *clipboard = QApplication::clipboard();
     QString text = clipboard->text();
     // first check whether text is fen string, try to create a board
@@ -63,9 +64,10 @@ void EditController::paste() {
     } catch(std::invalid_argument e) {
         std::cerr << e.what() << std::endl;
         // not a fen string. let's try pgn
+        chess::Game *g = new chess::Game();
         try {
-            chess::PgnReader *reader = new chess::PgnReader();
-            chess::Game* g = reader->readGameFromString(text);
+            chess::PgnReader *reader = new chess::PgnReader();            
+            reader->readGameFromString(text, g);
             this->gameModel->setGame(g);
             this->gameModel->getGame()->setTreeWasChanged(true);
             this->gameModel->triggerStateChange();
@@ -73,13 +75,13 @@ void EditController::paste() {
         catch(std::invalid_argument e) {
             std::cerr << e.what() << std::endl;
         }
-    }
+    }*/
 }
 
 void EditController::enterPosition() {
     chess::Board currentBoard = this->gameModel->getGame()->getCurrentNode()->getBoard();
     DialogEnterPosition *dlg = new DialogEnterPosition(currentBoard,
-                                                       *this->gameModel->colorStyle,
+                                                       this->gameModel->colorStyle,
                                                        this->parentWidget);
     if(dlg->exec() == QDialog::Accepted) {
 
