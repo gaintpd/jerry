@@ -1,13 +1,16 @@
-#include "pgn_reader.h"
+#include "chess/pgn_reader.h"
 #include "pgn_database.h"
 #include <QDebug>
 #include <QFile>
 #include <QProgressDialog>
 #include <QTextCodec>
 #include "chess/pgn_printer.h"
+#include "chess/node_pool.h"
+#include <QProgressDialog>
 #include <iostream>
+#include <QCoreApplication>
 
-chess::PgnDatabase::PgnDatabase()
+PgnDatabase::PgnDatabase()
 {
     this->parentWidget = nullptr;
     this->filename = "";
@@ -17,15 +20,15 @@ chess::PgnDatabase::PgnDatabase()
     this->lastSelectedIndex = 0;
 }
 
-chess::PgnDatabase::~PgnDatabase() {
+PgnDatabase::~PgnDatabase() {
 
 }
 
-bool chess::PgnDatabase::isOpen() {
+bool PgnDatabase::isOpen() {
     return this->currentlyOpen;
 }
 
-int chess::PgnDatabase::createNew(QString &filename) {
+int PgnDatabase::createNew(QString &filename) {
 
     QFile file(filename);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
@@ -44,17 +47,17 @@ int chess::PgnDatabase::createNew(QString &filename) {
 }
 
 
-void chess::PgnDatabase::setLastSelectedIndex(int idx) {
+void PgnDatabase::setLastSelectedIndex(int idx) {
     if(idx > 0 && idx < this->searchedOffsets.size()) {
         this->lastSelectedIndex = idx;
     }
 }
 
-int chess::PgnDatabase::getLastSelectedIndex() {
+int PgnDatabase::getLastSelectedIndex() {
     return this->lastSelectedIndex;
 }
 
-int chess::PgnDatabase::appendCurrentGame(chess::Game &game) {
+int PgnDatabase::appendCurrentGame(chess::Game &game) {
 
     QFile file(this->filename);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Append)) {
@@ -79,17 +82,38 @@ int chess::PgnDatabase::appendCurrentGame(chess::Game &game) {
 
 }
 
-void chess::PgnDatabase::setParentWidget(QWidget *parentWidget) {
+void PgnDatabase::setParentWidget(QWidget *parentWidget) {
     this->parentWidget = parentWidget;
 }
 
-QVector<qint64> chess::PgnDatabase::scanPgn(QString &filename, bool isLatin1) {
+QVector<qint64> PgnDatabase::scanPgn(QString &filename, bool is_utf8) {
+
+    /*
+    auto start = std::chrono::steady_clock::now();
+    QVector<qint64> temp = this->reader.scanPgn(filename, is_utf8);
+    auto stop = std::chrono::steady_clock::now();
+    std::chrono::duration<double> diff = (stop - start);
+    std::chrono::milliseconds i_millis = std::chrono::duration_cast<std::chrono::milliseconds>(diff);
+    std::cout << "reading w/o even proc.:" << i_millis.count() <<  "ms" << std::endl;
+
+
+    start = std::chrono::steady_clock::now();
+    */
 
     QVector<qint64> offsets;
     QFile file(filename);
 
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
         return offsets;
+
+    qint64 fileSize = file.size();
+
+    QProgressDialog dlgProgress("Processing Data...", "Abort Operation", 0, fileSize, this->parentWidget);
+    dlgProgress.setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint);
+    dlgProgress.setWindowTitle("Processing");
+    dlgProgress.setWindowModality(Qt::ApplicationModal);
+    dlgProgress.setMinimumDuration(400);
+    dlgProgress.show();
 
     bool inComment = false;
 
@@ -99,31 +123,11 @@ QVector<qint64> chess::PgnDatabase::scanPgn(QString &filename, bool isLatin1) {
     QString line("");
     qint64 last_pos = file.pos();
 
-    int size = file.size();
-     //QProgressDialog progress(this->parentWidget->tr("scanning PGN file..."), this->parentWidget->tr("Cancel"), 0, size, this->parentWidget);
-     //progress.setMinimumDuration(400);
-     //progress.setWindowModality(Qt::WindowModal);
-    //progress.setCancelButton(0);
-    //progress.show();
-
-    quint64 stepCounter = 0;
-
     int i= 0;
     while(!file.atEnd()) {
-
-        //if(progress.wasCanceled()) {
-        //    break;
-        //}
-
-        //if(stepCounter %50 == 0) {
-        //    progress.setValue(last_pos);
-        //    stepCounter = 0;
-        //}
-        //stepCounter += 1;
-
         i++;
         byteLine = file.readLine();
-        if(isLatin1) {
+        if(!is_utf8) {
             line = QString::fromLatin1(byteLine);
         } else {
             line = QString::fromUtf8(byteLine);
@@ -136,17 +140,12 @@ QVector<qint64> chess::PgnDatabase::scanPgn(QString &filename, bool isLatin1) {
         }
 
         if(!inComment && line.startsWith("[")) {
-            //QRegularExpressionMatch match_t = TAG_REGEX.match(line);
 
-            //if(match_t.hasMatch()) {
-
-                if(game_pos == -1) {
-                    game_pos = last_pos;
-                }
-                last_pos = file.pos();
-                byteLine = file.readLine();
-                continue;
-            //}
+            if(game_pos == -1) {
+                game_pos = last_pos;
+            }
+            last_pos = file.pos();
+            continue;
         }
         if((!inComment && line.contains("{"))
                 || (inComment && line.contains("}"))) {
@@ -159,6 +158,15 @@ QVector<qint64> chess::PgnDatabase::scanPgn(QString &filename, bool isLatin1) {
         }
 
         last_pos = file.pos();
+
+        if(offsets.length() % 2500 == 0) { // 1000 games per second
+            dlgProgress.setValue(last_pos);
+            if(dlgProgress.wasCanceled()) {
+                break;
+            }
+            QCoreApplication::processEvents();
+        }
+
         byteLine = file.readLine();
     }
     // for the last game
@@ -167,29 +175,27 @@ QVector<qint64> chess::PgnDatabase::scanPgn(QString &filename, bool isLatin1) {
         game_pos = -1;
     }
 
+    /*
+    stop = std::chrono::steady_clock::now();
+    diff = (stop - start);
+    i_millis = std::chrono::duration_cast<std::chrono::milliseconds>(diff);
+    std::cout << "reading w/ even proc..:" << i_millis.count() <<  "ms" << std::endl;
+    */
     return offsets;
 }
 
 
-void chess::PgnDatabase::open(QString &filename) {
+void PgnDatabase::open(QString &filename) {
 
-    //this->isUtf8 = reader.detectUtf8(filename);
-    this->isUtf8 = true;
-    /*
-    const char* utf8 = "UTF-8";
-    const char* encoding = reader.detect_encoding(filename);
-    int cmp = strcmp(encoding, utf8);
-    if(cmp != 0){
-        isLatin1 = true;
-    }*/
-    this->allOffsets = this->scanPgn(filename, this->isUtf8);
-    this->searchedOffsets = this->allOffsets;
+    bool isUtf8 = this->reader.isUtf8(filename);
+    this->searchedOffsets = this->scanPgn(filename, isUtf8);
     this->filename = filename;
     this->currentlyOpen = true;
     this->lastSelectedIndex = -1;
 }
 
-void chess::PgnDatabase::close() {
+
+void PgnDatabase::close() {
     this->allOffsets.clear();
     this->searchedOffsets.clear();
     this->filename = "";
@@ -197,22 +203,43 @@ void chess::PgnDatabase::close() {
     this->lastSelectedIndex = -1;
 }
 
-int chess::PgnDatabase::getRowCount() {
+int PgnDatabase::getRowCount() {
     return this->searchedOffsets.size();
 }
 
-chess::Game* chess::PgnDatabase::getGameAt(int idx) {
+chess::Game* PgnDatabase::getGameAt(int idx) {
     chess::Game *g = new chess::Game();
-    return g;
-    /*
-    const char* encoding = reader.detect_encoding(filename);
-    chess::Game *g = this->reader.readGameFromFile(this->filename, encoding, this->searchedOffsets.at(idx));
     this->lastSelectedIndex = idx;
-    return g;
-    */
+
+    bool is_utf8 = this->reader.isUtf8(this->filename);
+
+    QFile file(this->filename);
+    if(!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        g;
+    }
+    QTextStream in(&file);
+    QTextCodec *codec;
+    if(is_utf8) {
+        codec = QTextCodec::codecForName("UTF-8");
+    } else {
+        codec = QTextCodec::codecForName("ISO 8859-1");
+    }
+    in.setCodec(codec);
+    int res = this->reader.readGame(in, this->searchedOffsets.at(idx), g);
+    if(res == chess::GENERAL_ERROR) {
+        chess::GameNode *root = g->getRootNode();
+        if(root != nullptr) {
+            chess::NodePool::deleteNode(root);
+        }
+        delete g;
+        return new chess::Game();
+    } else {
+
+        return g;
+    }
 }
 
-bool chess::PgnDatabase::pgnHeaderMatches(QFile &file, SearchPattern &pattern, qint64 offset) {
+bool PgnDatabase::pgnHeaderMatches(QFile &file, SearchPattern &pattern, qint64 offset) {
 
 
     bool foundHeader = false;
@@ -242,7 +269,7 @@ bool chess::PgnDatabase::pgnHeaderMatches(QFile &file, SearchPattern &pattern, q
             continue;
         }
 
-        QRegularExpressionMatch match_t = TAG_REGEX.match(line);
+        QRegularExpressionMatch match_t = chess::TAG_REGEX.match(line);
 
         if(match_t.hasMatch()) {
 
@@ -287,14 +314,14 @@ bool chess::PgnDatabase::pgnHeaderMatches(QFile &file, SearchPattern &pattern, q
             if(tag == "Black") {
                 blackName = value;
             }
-            if(pattern.result != RES_ANY) {
-                if(pattern.result == RES_BLACK_WINS && !value.contains("0-1")) {
+            if(pattern.result != chess::RES_ANY) {
+                if(pattern.result == chess::RES_BLACK_WINS && !value.contains("0-1")) {
                     return false;
-                } else if(pattern.result == RES_DRAW && !value.contains("1/2-1/2")) {
+                } else if(pattern.result == chess::RES_DRAW && !value.contains("1/2-1/2")) {
                     return false;
-                } else if(pattern.result == RES_UNDEF && !value.contains("*")) {
+                } else if(pattern.result == chess::RES_UNDEF && !value.contains("*")) {
                     return false;
-                } else if(pattern.result == RES_WHITE_WINS && !value.contains("1-0")) {
+                } else if(pattern.result == chess::RES_WHITE_WINS && !value.contains("1-0")) {
                     return false;
                 }
             }
@@ -356,7 +383,7 @@ bool chess::PgnDatabase::pgnHeaderMatches(QFile &file, SearchPattern &pattern, q
 
 
 
-bool chess::PgnDatabase::pgnHeaderMatches1(QTextStream &openStream, SearchPattern &pattern, qint64 offset) {
+bool PgnDatabase::pgnHeaderMatches1(QTextStream &openStream, SearchPattern &pattern, qint64 offset) {
 
     bool foundHeader = false;
     bool continueSearch = true;
@@ -370,7 +397,7 @@ bool chess::PgnDatabase::pgnHeaderMatches1(QTextStream &openStream, SearchPatter
             continue;
         }
 
-        QRegularExpressionMatch match_t = TAG_REGEX.match(line);
+        QRegularExpressionMatch match_t = chess::TAG_REGEX.match(line);
 
         if(match_t.hasMatch()) {
 
@@ -428,7 +455,7 @@ bool chess::PgnDatabase::pgnHeaderMatches1(QTextStream &openStream, SearchPatter
 }
 
 
-void chess::PgnDatabase::search(SearchPattern &pattern) {
+void PgnDatabase::search(SearchPattern &pattern) {
 
     QFile file(filename);
 
@@ -554,7 +581,7 @@ chess::PgnHeader chess::PgnDatabase::getRowInfo(int idx) {
 }
 */
 
-chess::PgnHeader chess::PgnDatabase::getRowInfo(int idx) {
+chess::PgnHeader PgnDatabase::getRowInfo(int idx) {
 
         chess::PgnHeader h;
         if(idx >= this->searchedOffsets.size()) {
@@ -567,14 +594,14 @@ chess::PgnHeader chess::PgnDatabase::getRowInfo(int idx) {
         }
 }
 
-void chess::PgnDatabase::resetSearch() {
+void PgnDatabase::resetSearch() {
     this->searchedOffsets.clear();
     this->searchedOffsets = this->allOffsets;
     this->lastSelectedIndex = -1;
 }
 
 
-int chess::PgnDatabase::countGames() {
+int PgnDatabase::countGames() {
     //qDebug() << "pgn database: count games";
 
     return this->allOffsets.size();

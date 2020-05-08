@@ -21,16 +21,16 @@
 #ifndef GAME_MODEL_H
 #define GAME_MODEL_H
 
+#include <QPixmap>
 #include "chess/game.h"
 #include "chess/board.h"
 #include "chess/move.h"
-#include "viewController/colorstyle.h"
-#include <QPixmap>
-#include <QList>
 #include "chess/polyglot.h"
-#include "chess/pgn_database.h"
-#include "engine.h"
+#include "database/pgn_database.h"
+#include "viewController/colorstyle.h"
+#include "model/engine.h"
 #include "model/font_style.h"
+
 
 const int MODE_ANALYSIS = 0;
 const int MODE_PLAY_WHITE = 1;
@@ -43,7 +43,7 @@ const int ANALYSE_BOTH_PLAYERS = 0;
 const int ANALYSE_WHITE_ONLY = 1;
 const int ANALYSE_BLACK_ONLY = 2;
 
-const QString JERRY_VERSION = "3.2.1";
+const QString JERRY_VERSION = "3.3.0";
 
 class GameModel : public QObject
 {
@@ -109,7 +109,7 @@ public:
     QVector<chess::Move> getBookMoves(chess::GameNode *node);
     bool isInBook(chess::GameNode *node);
 
-    chess::PgnDatabase database;
+    PgnDatabase database;
 
     bool gameAnalysisStarted;
 

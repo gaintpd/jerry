@@ -78,7 +78,7 @@ GameModel::GameModel(QObject *parent) :
 
     this->loadOpeningBook();
 
-    this->database = chess::PgnDatabase();
+    this->database = PgnDatabase();
 
     this->nrPvLines = 1;
 }
@@ -149,7 +149,6 @@ void GameModel::setGame(chess::Game *g) {
     chess::NodePool::deleteNode(this->game->getRootNode());
     delete this->game;
     this->game = g;
-    //this->game->setCurrent(this->game->getRootNode());
 }
 
 void GameModel::triggerStateChange() {

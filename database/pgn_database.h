@@ -1,15 +1,17 @@
 #ifndef PGNDATABASE_H
 #define PGNDATABASE_H
 
-#include "chess/database.h"
+#include "database.h"
 #include "model/search_pattern.h"
 #include <QFile>
-
-namespace chess {
+#include <QThread>
+#include <QProgressDialog>
 
 class PgnDatabase : public Database
 {
+
 public:
+
     PgnDatabase();
     ~PgnDatabase();
 
@@ -20,8 +22,8 @@ public:
     int appendCurrentGame(chess::Game &game);
 
     int getRowCount();
-    Game* getGameAt(int idx);
-    PgnHeader getRowInfo(int idx);
+    chess::Game* getGameAt(int idx);
+    chess::PgnHeader getRowInfo(int idx);
     int countGames();
     bool isOpen();
     void search(SearchPattern &pattern);
@@ -33,21 +35,18 @@ private:
     QVector<qint64> allOffsets;
     QVector<qint64> searchedOffsets;
     QWidget *parentWidget;
-    PgnReader reader;
+    chess::PgnReader reader;
     QString filename;
     QHash<qint64, chess::PgnHeader> headerCache;
-    QVector<qint64> scanPgn(QString &filename, bool isLatin1);
     int cacheSize;
     bool isUtf8;
     bool currentlyOpen;
     int lastSelectedIndex;
     bool pgnHeaderMatches(QFile &file, SearchPattern &pattern, qint64 offset);
-
+    QVector<qint64> scanPgn(QString &filename, bool is_utf8);
     bool pgnHeaderMatches1(QTextStream &openStream, SearchPattern &pattern, qint64 offset);
 
 
-
 };
-}
 
 #endif // PGNDATABASE_H

@@ -30,7 +30,7 @@
 #include "chess/pgn_printer.h"
 #include "uci/uci_controller.h"
 #include "chess/polyglot.h"
-#include "chess/pgn_database.h"
+#include "database/pgn_database.h"
 #include "various/resource_finder.h"
 #include <QMutex>
 #include <QDir>
@@ -170,7 +170,7 @@ void FuncT::run_pgn_scant() {
 
 void FuncT::run_pgn_parse_speedtest() {
 
-    chess::PgnDatabase db;
+    PgnDatabase db;
     QString fn = QString("C://Users//user//MyFiles//workspace//test_databases//speedtest.pgn");
     db.open(fn);
 

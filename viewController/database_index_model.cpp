@@ -9,7 +9,7 @@ DatabaseIndexModel::DatabaseIndexModel(QObject *parent)
 
 }
 
-void DatabaseIndexModel::setDatabase(chess::Database *database)
+void DatabaseIndexModel::setDatabase(Database *database)
 {
     this->database = database;
 }

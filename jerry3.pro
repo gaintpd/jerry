@@ -29,6 +29,8 @@ SOURCES += main.cpp \
     chess/node_pool.cpp \
     chess/pgn_reader.cpp \
     chess/pgn_printer.cpp \
+    database/database.cpp \
+    database/pgn_database.cpp \
     dialogs/tab_board_style.cpp \
     dialogs/tab_font_style.cpp \
     model/font_style.cpp \
@@ -72,9 +74,7 @@ SOURCES += main.cpp \
     chess/ecocode.cpp \
     chess/polyglot.cpp \
     various/helper.cpp \
-    chess/database.cpp \
     viewController/database_index_model.cpp \
-    chess/pgn_database.cpp \
     dialogs/dialog_database.cpp \
     dialogs/dialog_database_help.cpp \
     model/search_pattern.cpp \
@@ -89,6 +89,8 @@ HEADERS += \
     chess/node_pool.h \
     chess/pgn_reader.h \
     chess/pgn_printer.h \
+    database/database.h \
+    database/pgn_database.h \
     dialogs/tab_board_style.h \
     dialogs/tab_font_style.h \
     model/font_style.h \
@@ -135,9 +137,7 @@ HEADERS += \
     chess/constants.h \
     chess/arrow.h \
     chess/colored_field.h \
-    chess/database.h \
     viewController/database_index_model.h \
-    chess/pgn_database.h \
     dialogs/dialog_database.h \
     dialogs/dialog_database_help.h \
     model/search_pattern.h \

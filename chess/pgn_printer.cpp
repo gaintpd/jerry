@@ -142,9 +142,8 @@ QStringList PgnPrinter::printGame(Game *g) {
 
 }
 
-void PgnPrinter::printMove(GameNode *g) {
-    Board *b = g->getBoard();
-    Move m = g->getMove();
+void PgnPrinter::printMove(GameNode *node) {
+    Board *b = node->getBoard();
     if(b->turn == WHITE) {
         QString tkn = QString::number(b->fullmove_number);
         tkn.append(QString(". "));
@@ -155,7 +154,10 @@ void PgnPrinter::printMove(GameNode *g) {
         tkn.append(QString("... "));
         this->writeToken(tkn);
     }
-    this->writeToken((b->san(m)).append(QString(" ")));
+    QString sn = node->getSan();
+    if(!sn.isEmpty()) {
+        this->writeToken(sn.append(" "));
+    }
     this->forceMoveNumber = false;
 }
 
