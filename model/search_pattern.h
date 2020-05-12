@@ -14,6 +14,8 @@ public:
     SearchPattern();
 
     bool searchGameData;
+    bool searchPosition;
+    bool searchVariations;
 
     QString whiteName;
     QString blackName;
@@ -33,6 +35,8 @@ public:
     int elo_min;
     int elo_max;
     int result;
+
+    quint64 posHash;
 
 };
 

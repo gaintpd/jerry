@@ -11,35 +11,35 @@ DialogSearch::DialogSearch(GameModel *gameModel, QWidget *parent) :
 {
     this->ths = new TabHeaderSearch(this);
     //this->tcs = new TabCommentSearch(this);
-    //this->tsp = new TabSearchPos(gameModel, this);
+    this->tps = new TabPosSearch(gameModel, this);
 
     QTabWidget *tabWidget = new QTabWidget;
     tabWidget->addTab(ths, tr("Game Data"));
     //tabWidget->addTab(tcs, tr("Comments"));
-    //tabWidget->addTab(tsp, tr("Position"));
+    tabWidget->addTab(tps, tr("Position"));
 
     QDialogButtonBox *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok| QDialogButtonBox::Cancel);
 
     connect(buttonBox, &QDialogButtonBox::accepted, this, &DialogSearch::accept);
     connect(buttonBox, &QDialogButtonBox::rejected, this, &DialogSearch::reject);
 
-    //this->optGameData = new QCheckBox(tr("Game Data"));
+    this->optGameData = new QCheckBox(tr("Game Data"));
     //this->optComments = new QCheckBox(tr("Comments"));
-    //this->optPosition = new QCheckBox(tr("Position"));
-    //this->optVariants = new QCheckBox(tr("Search in Variations"));
+    this->optPosition = new QCheckBox(tr("Position"));
+    this->optVariants = new QCheckBox(tr("Search in Variations"));
 
-    //this->optGameData->setChecked(true);
+    this->optGameData->setChecked(true);
 
-    //QHBoxLayout *layoutOptions = new QHBoxLayout();
-    //layoutOptions->addWidget(optGameData);
+    QHBoxLayout *layoutOptions = new QHBoxLayout();
+    layoutOptions->addWidget(optGameData);
     //layoutOptions->addWidget(optComments);
-    //layoutOptions->addWidget(optPosition);
-    //layoutOptions->addWidget(optVariants);
-    //layoutOptions->addStretch(1);
+    layoutOptions->addWidget(optPosition);
+    layoutOptions->addWidget(optVariants);
+    layoutOptions->addStretch(1);
 
     QVBoxLayout *mainLayout = new QVBoxLayout;
     mainLayout->addWidget(tabWidget);
-    //mainLayout->addLayout(layoutOptions);
+    mainLayout->addLayout(layoutOptions);
     mainLayout->addWidget(buttonBox);
     setLayout(mainLayout);
 
@@ -119,13 +119,13 @@ SearchPattern DialogSearch::getPattern() {
 
 
     // search options
-    //sp.searchGameData = this->optGameData->isChecked();
-    sp.searchGameData = true;
+    sp.searchGameData = this->optGameData->isChecked();
+    //sp.searchGameData = true;
     //sp.searchComments = this->optComments->isChecked();
-    //sp.searchPosition = this->optPosition->isChecked();
-    //sp.searchVariations = this->optVariants->isChecked();
+    sp.searchPosition = this->optPosition->isChecked();
+    sp.searchVariations = this->optVariants->isChecked();
 
-    //sp.search_board = this->tsp->getBoard();
+    sp.posHash = this->tps->getBoard().get_pos_hash();
 
     return sp;
 }

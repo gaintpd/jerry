@@ -5,6 +5,8 @@ SearchPattern::SearchPattern()
 {
 
     this->searchGameData = false;
+    this->searchPosition = false;
+    this->searchVariations = false;
 
     this->whiteName = "";
     this->blackName = "";
@@ -24,5 +26,7 @@ SearchPattern::SearchPattern()
     this->elo_min = 1000;
     this->elo_max = 3000;
     this->result = chess::RES_ANY;
+
+    this->posHash = 0;
 
 }

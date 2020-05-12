@@ -1,0 +1,36 @@
+#ifndef TABPOSSEARCH_H
+#define TABPOSSEARCH_H
+
+#include <QWidget>
+#include <QPushButton>
+#include <QSpinBox>
+#include "model/game_model.h"
+#include "viewController/enterposboard.h"
+
+class TabPosSearch : public QWidget
+{
+    Q_OBJECT
+public:
+    explicit TabPosSearch(GameModel* model, QWidget *parent = nullptr);
+
+    QSpinBox *firstMove;
+    QSpinBox *lastMove;
+    QSpinBox *occursAtLeast;
+
+    QPushButton *buttonInit;
+    QPushButton *buttonClear;
+    QPushButton *buttonCurrent;
+
+    chess::Board getBoard();
+
+private:
+    EnterPosBoard *enterPos;
+    chess::Board board;
+
+    signals:
+
+    public slots:
+
+};
+
+#endif // TABPOSSEARCH_H

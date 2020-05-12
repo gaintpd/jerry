@@ -4,7 +4,8 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui \
+    widgets
 greaterThan(QT_MAJOR_VERSION, 5): QT += widgets
 
 QT       += printsupport
@@ -33,6 +34,7 @@ SOURCES += main.cpp \
     database/pgn_database.cpp \
     dialogs/tab_board_style.cpp \
     dialogs/tab_font_style.cpp \
+    dialogs/tab_pos_search.cpp \
     model/font_style.cpp \
     profile/profile.cpp \
     uci/uci_controller.cpp \
@@ -93,6 +95,7 @@ HEADERS += \
     database/pgn_database.h \
     dialogs/tab_board_style.h \
     dialogs/tab_font_style.h \
+    dialogs/tab_pos_search.h \
     model/font_style.h \
     profile/profile.h \
     uci/uci_worker.h \

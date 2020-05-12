@@ -111,7 +111,7 @@ QVector<qint64> PgnDatabase::scanPgn(QString &filename, bool is_utf8) {
     QProgressDialog dlgProgress("Processing Data...", "Abort Operation", 0, fileSize, this->parentWidget);
     dlgProgress.setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint);
     dlgProgress.setWindowTitle("Processing");
-    dlgProgress.setWindowModality(Qt::ApplicationModal);
+    dlgProgress.setWindowModality(Qt::WindowModal);
     dlgProgress.setMinimumDuration(400);
     dlgProgress.show();
 

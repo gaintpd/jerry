@@ -6,7 +6,7 @@
 #include "model/game_model.h"
 #include "model/search_pattern.h"
 #include "dialogs/tab_header_search.h"
-
+#include "dialogs/tab_pos_search.h"
 
 class DialogSearch : public QDialog
 {
@@ -18,11 +18,12 @@ public:
 
 private:
     TabHeaderSearch* ths;
+    TabPosSearch *tps;
 
     QCheckBox *optGameData;
     //QCheckBox *optComments;
-    //QCheckBox *optPosition;
-    //QCheckBox *optVariants;
+    QCheckBox *optPosition;
+    QCheckBox *optVariants;
 
 protected:
     void resizeEvent(QResizeEvent *re);
