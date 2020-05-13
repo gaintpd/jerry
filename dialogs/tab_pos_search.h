@@ -19,6 +19,7 @@ public:
 
     QPushButton *buttonInit;
     QPushButton *buttonClear;
+    QPushButton *buttonFlipBoard;
     QPushButton *buttonCurrent;
 
     chess::Board getBoard();
@@ -29,7 +30,11 @@ private:
 
     signals:
 
-    public slots:
+public slots:
+    void flipBoard();
+    void clearBoard();
+    void setToCurrentBoard();
+    void setToInitialPosition();
 
 };
 

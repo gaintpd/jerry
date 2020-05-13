@@ -5,6 +5,8 @@
 #include <QVBoxLayout>
 #include <QDebug>
 #include <QCheckBox>
+#include <QDesktopWidget>
+#include <QApplication>
 
 DialogSearch::DialogSearch(GameModel *gameModel, QWidget *parent) :
     QDialog(parent)
@@ -43,7 +45,8 @@ DialogSearch::DialogSearch(GameModel *gameModel, QWidget *parent) :
     mainLayout->addWidget(buttonBox);
     setLayout(mainLayout);
 
-    this->setMinimumWidth(this->height()*1.65);
+    //this->setMinimumWidth(this->height()*1.8);
+    this->resizeTo(0.5);
 
     setWindowTitle(tr("Search for Games"));
 
@@ -178,4 +181,31 @@ void DialogSearch::setPattern(SearchPattern &sp) {
             break;
     }
 
+}
+
+void DialogSearch::resizeTo(float ratio) {
+
+    int height = 0;
+    int width = 0;
+    if(this->parentWidget() != 0) {
+        int w_height = this->parentWidget()->size().height();
+        height = w_height * ratio;
+        this->setMinimumHeight(height);
+        width = height * 1.42;
+        QSize newSize( width, height );
+        this->resize(newSize);
+        QRect parentRect = parentWidget()->geometry();
+        this->move((parentRect.x() + ((parentRect.width()-width )/2.0) ),
+                   (parentRect.y() + ((parentRect.height()-width )/2.0)));
+    } else {
+        QDesktopWidget *desktop = qApp->desktop();
+        QSize availableSize = desktop->availableGeometry().size();
+        int w_height = availableSize.height();
+        height = w_height * (ratio*0.6);
+        this->setMinimumHeight(height);
+        //width = w_width * (ratio*0.6);
+        width = height * 1.1;
+        QSize newSize( width, height );
+        this->resize(newSize);
+    }
 }

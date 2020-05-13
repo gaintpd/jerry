@@ -24,6 +24,7 @@ private:
     //QCheckBox *optComments;
     QCheckBox *optPosition;
     QCheckBox *optVariants;
+    void resizeTo(float ratio);
 
 protected:
     void resizeEvent(QResizeEvent *re);

@@ -139,15 +139,18 @@ TabHeaderSearch::TabHeaderSearch(QWidget *parent) : QWidget(parent)
     layoutLeft->addLayout(layoutNameSite);
     layoutLeft->addSpacing(len_vertical_space);
     layoutLeft->addLayout(layoutYearEcoMoves);
+    layoutLeft->insertStretch(6,1);
 
     layoutRight->addWidget(gbElo);
     layoutRight->addSpacing(len_vertical_space);
     layoutRight->addWidget(gbResult);
-    layoutRight->addStretch(10);
+    layoutRight->addStretch(10);    
+    //layoutLeft->setAlignment(Qt::AlignLeft);
 
     layoutLeftRight->addLayout(layoutLeft);
     layoutLeftRight->addSpacing(len_space);
     layoutLeftRight->addLayout(layoutRight);
+    layoutLeftRight->insertStretch(4,1);
 
     QHBoxLayout *layoutResetButton = new QHBoxLayout();
     layoutResetButton->addStretch(10);
