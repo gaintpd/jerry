@@ -45,6 +45,8 @@ struct PgnHeader
     QString white;
     QString black;
     QString result;
+    QString whiteElo;
+    QString blackElo;
 };
 
 struct PgnHeaderOffset
@@ -61,6 +63,7 @@ public:
     bool isUtf8(const QString &filename);
 
     QVector<qint64> scanPgn(QString &filename, bool isUtf8);
+    PgnHeader readSingleHeaderFromPgnAt(QTextStream &in, qint64 offset);
     PgnHeader readSingleHeaderFromPgnAt(QString &filename, qint64 offset, bool isUtf8);
 
     int readGameFromString(QString &pgn_string, chess::Game *g);

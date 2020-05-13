@@ -111,7 +111,7 @@ QVector<qint64> PgnDatabase::scanPgn(QString &filename, bool is_utf8) {
     QProgressDialog dlgProgress("Processing Data...", "Abort Operation", 0, fileSize, this->parentWidget);
     dlgProgress.setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint);
     dlgProgress.setWindowTitle("Processing");
-    dlgProgress.setWindowModality(Qt::WindowModal);
+    dlgProgress.setWindowModality(Qt::ApplicationModal);
     dlgProgress.setMinimumDuration(400);
     dlgProgress.show();
 
@@ -189,6 +189,7 @@ void PgnDatabase::open(QString &filename) {
 
     bool isUtf8 = this->reader.isUtf8(filename);
     this->searchedOffsets = this->scanPgn(filename, isUtf8);
+    this->allOffsets = searchedOffsets;
     this->filename = filename;
     this->currentlyOpen = true;
     this->lastSelectedIndex = -1;
@@ -234,261 +235,193 @@ chess::Game* PgnDatabase::getGameAt(int idx) {
         delete g;
         return new chess::Game();
     } else {
-
         return g;
     }
 }
 
-bool PgnDatabase::pgnHeaderMatches(QFile &file, SearchPattern &pattern, qint64 offset) {
+bool PgnDatabase::pgnHeaderMatches(SearchPattern &pattern, chess::PgnHeader &header) {
 
-
-    bool foundHeader = false;
-    bool continueSearch = true;
-
-    QByteArray byteLine;
-    QString line;
-    file.seek(offset);
-
-    QString pattern_year_min = QString::number(pattern.year_min);
-    QString pattern_year_max = QString::number(pattern.year_max);
-
-    QString elo_min = QString::number(pattern.elo_min);
-    QString elo_max = QString::number(pattern.elo_max);
-
-    int whiteElo = -1;
-    int blackElo = -1;
-
-    QString whiteName = "";
-    QString blackName = "";
-
-    while(!file.atEnd() && continueSearch) {
-        byteLine = file.readLine();
-        line = QString::fromUtf8(byteLine);
-        if(line.startsWith("%") || line.isEmpty()) {
-            byteLine = file.readLine();
-            continue;
+    if(!pattern.event.isEmpty()) {
+        if(!header.event.contains(pattern.event, Qt::CaseInsensitive)) {
+                return false;
         }
+    }
 
-        QRegularExpressionMatch match_t = chess::TAG_REGEX.match(line);
+    if(!pattern.site.isEmpty()) {
+        if(!header.site.contains(pattern.site, Qt::CaseInsensitive)) {
+                return false;
+        }
+    }
 
-        if(match_t.hasMatch()) {
+    if(pattern.checkYear) {
+        QString year_i = header.date.left(4);
+        if(year_i < pattern.year_min) {
+            return false;
+        }
+        if(year_i > pattern.year_max) {
+            return false;
+        }
+    }
 
-            foundHeader = true;
+    if(pattern.checkEco) {
+        if(header.eco < pattern.ecoStart || header.eco > pattern.ecoStop) {
+            return false;
+        }
+    }
 
-            QString tag = match_t.captured(1);
-            QString value = match_t.captured(2);
+    if(pattern.result != chess::RES_ANY) {
+        if(pattern.result == chess::RES_BLACK_WINS && !header.result.contains("0-1")) {
+            return false;
+        } else if(pattern.result == chess::RES_DRAW && !header.result.contains("1/2-1/2")) {
+            return false;
+        } else if(pattern.result == chess::RES_UNDEF && !header.result.contains("*")) {
+            return false;
+        } else if(pattern.result == chess::RES_WHITE_WINS && !header.result.contains("1-0")) {
+            return false;
+        }
+    }
 
-            if(!pattern.event.isEmpty() && tag == "Event") {
-                if(!value.contains(pattern.event, Qt::CaseInsensitive)) {
-                        return false;
-                }
+    if(pattern.ignoreNameColor) {
+        if(!pattern.whiteName.isEmpty()) {
+            // must match either black or white
+            if(!header.white.contains(pattern.whiteName, Qt::CaseInsensitive)
+               && !header.black.contains(pattern.whiteName, Qt::CaseInsensitive)) {
+                return false;
             }
-            if(!pattern.site.isEmpty() && tag == "Site") {
-                if(!value.contains(pattern.site, Qt::CaseInsensitive)) {
+        }
+        if(!pattern.blackName.isEmpty()) {
+            // must match either black or white
+            if(!header.white.contains(pattern.blackName, Qt::CaseInsensitive)
+               && !header.black.contains(pattern.blackName, Qt::CaseInsensitive)) {
+                return false;
+            }
+        }
+    } else {
+        // if whiteName is not empty, then it must match
+        if(!pattern.whiteName.isEmpty() &&
+                !header.white.contains(pattern.whiteName, Qt::CaseInsensitive)) {
+            return false;
+        }
+        if(!pattern.blackName.isEmpty() &&
+                !header.black.contains(pattern.blackName, Qt::CaseInsensitive)) {
+            return false;
+        }
+    }
+
+    if(pattern.checkElo != SEARCH_IGNORE_ELO) {
+        int whiteElo = header.whiteElo.toInt();
+        int blackElo = header.blackElo.toInt();
+        // only if we could find elo information for both players
+        if(whiteElo > 0 && blackElo > 0) {
+            if(pattern.checkElo == SEARCH_AVERAGE_ELO) {
+                int avg = (whiteElo + blackElo) / 2;
+                if(pattern.elo_min > avg || pattern.elo_max < avg) {
                     return false;
                 }
-            }
-            if(pattern.checkYear && tag == "Date") {
-                QString year_i = value.left(4);
-                if(year_i < pattern_year_min) {
+            } else if(pattern.checkElo == SEARCH_ONE_ELO) {
+                if((pattern.elo_min > whiteElo || pattern.elo_max < whiteElo) &&
+                        (pattern.elo_min > blackElo || pattern.elo_max < blackElo)) {
                     return false;
                 }
-                if(year_i > pattern_year_max) {
+            } else if(pattern.checkElo == SEARCH_BOTH_ELO) {
+                if(pattern.elo_min > whiteElo || pattern.elo_max < whiteElo ||
+                    pattern.elo_min > blackElo || pattern.elo_max < blackElo) {
                     return false;
                 }
-            }
-            if(pattern.checkEco && tag == "ECO") {
-                if(value < pattern.ecoStart || value > pattern.ecoStop) {
-                    return false;
-                }
-            }
-            if(tag == "WhiteElo") {
-                whiteElo = value.toInt();
-            }
-            if(tag == "blackElo") {
-                blackElo = value.toInt();
-            }
-            if(tag == "White") {
-                whiteName = value;
-            }
-            if(tag == "Black") {
-                blackName = value;
-            }
-            if(pattern.result != chess::RES_ANY) {
-                if(pattern.result == chess::RES_BLACK_WINS && !value.contains("0-1")) {
-                    return false;
-                } else if(pattern.result == chess::RES_DRAW && !value.contains("1/2-1/2")) {
-                    return false;
-                } else if(pattern.result == chess::RES_UNDEF && !value.contains("*")) {
-                    return false;
-                } else if(pattern.result == chess::RES_WHITE_WINS && !value.contains("1-0")) {
-                    return false;
-                }
-            }
-        } else {
-            if(foundHeader) {
-                if(pattern.ignoreNameColor) {
-                    if(!pattern.whiteName.isEmpty()) {
-                        // must match either black or white
-                        if(!whiteName.contains(pattern.whiteName, Qt::CaseInsensitive)
-                           && !blackName.contains(pattern.whiteName, Qt::CaseInsensitive)) {
-                            return false;
-                        }
-                    }
-                    if(!pattern.blackName.isEmpty()) {
-                        // must match either black or white
-                        if(!whiteName.contains(pattern.blackName, Qt::CaseInsensitive)
-                           && !blackName.contains(pattern.blackName, Qt::CaseInsensitive)) {
-                            return false;
-                        }
-                    }
-                } else {
-                    // if whiteName is not empty, then it must match
-                    if(!pattern.whiteName.isEmpty() &&
-                            !whiteName.contains(pattern.whiteName, Qt::CaseInsensitive)) {
-                        return false;
-                    }
-                    if(!pattern.blackName.isEmpty() &&
-                            !blackName.contains(pattern.blackName, Qt::CaseInsensitive)) {
-                        return false;
-                    }
-                }
-                if(pattern.checkElo != SEARCH_IGNORE_ELO) {
-                    // only if we could find elo information for both players
-                    if(whiteElo > 0 && blackElo > 0) {
-                        if(pattern.checkElo == SEARCH_AVERAGE_ELO) {
-                            int avg = (whiteElo + blackElo) / 2;
-                            if(pattern.elo_min > avg || pattern.elo_max < avg) {
-                                return false;
-                            }
-                        } else if(pattern.checkElo == SEARCH_ONE_ELO) {
-                            if((pattern.elo_min > whiteElo || pattern.elo_max < whiteElo) &&
-                                    (pattern.elo_min > blackElo || pattern.elo_max < blackElo)) {
-                                return false;
-                            }
-                        } else if(pattern.checkElo == SEARCH_BOTH_ELO) {
-                            if(pattern.elo_min > whiteElo || pattern.elo_max < whiteElo ||
-                                pattern.elo_min > blackElo || pattern.elo_max < blackElo) {
-                                return false;
-                            }
-                        }
-                    }
-                }
-                return true;
             }
         }
     }
-    return false;
+
+    return true;
+
 }
 
-
-
-bool PgnDatabase::pgnHeaderMatches1(QTextStream &openStream, SearchPattern &pattern, qint64 offset) {
-
-    bool foundHeader = false;
-    bool continueSearch = true;
-
-    openStream.seek(offset);
-    QString line = openStream.readLine();
-    while(!openStream.atEnd() && continueSearch) {
-        line = openStream.readLine();
-        if(line.startsWith("%") || line.isEmpty()) {
-            line = openStream.readLine();
-            continue;
-        }
-
-        QRegularExpressionMatch match_t = chess::TAG_REGEX.match(line);
-
-        if(match_t.hasMatch()) {
-
-            foundHeader = true;
-
-            QString tag = match_t.captured(1);
-            QString value = match_t.captured(2);
-
-            /*
-            if(tag == "Event") {
-                if(!value.contains(pattern.event, Qt::CaseInsensitive)) {
-                    return false;
-                }
-            }
-            if(tag == "Site") {
-                if(!value.contains(pattern.site, Qt::CaseInsensitive)) {
-                    return false;
-                }
-            }*/
-            if(tag == "Date") {
-                // todo: compare date
-            }
-            if(tag == "Round") {
-                // todo
-            }
-            if(tag == "White") {
-                if(!value.contains(pattern.whiteName, Qt::CaseInsensitive)) {
-                    return false;
-                } else {
-                    return true;
-                }
-            }
-            /*
-            if(tag == "Black") {
-                if(!value.contains(pattern.blackName, Qt::CaseInsensitive)) {
-                    return false;
-                }
-            }*/
-            if(tag == "Result") {
-                // todo
-            }
-            if(tag == "ECO") {
-                // todo
-            }
-        } else {
-            if(foundHeader) {
-
-                return true;
-                //continueSearch = false;
-                //break;
-            }
-        }
-    }
-    return false;
-}
 
 
 void PgnDatabase::search(SearchPattern &pattern) {
 
+    //qDebug() << "PgnDatabase search ";
     QFile file(filename);
 
     if(!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         throw std::invalid_argument("unable to open file w/ supplied filename");
     }
 
+    QTextStream in(&file);
+    QTextCodec *codec;
+    if(isUtf8) {
+        codec = QTextCodec::codecForName("UTF-8");
+    } else {
+        codec = QTextCodec::codecForName("ISO 8859-1");
+    }
+    in.setCodec(codec);
+
+    //qDebug() << "PgnDatabase search 2";
+
     this->searchedOffsets.clear();
 
-    QProgressDialog progress(this->parentWidget->tr("searching..."), this->parentWidget->tr("Cancel"), 0, this->countGames(), this->parentWidget);
+    //QProgressDialog progress(this->parentWidget->tr("searching..."), this->parentWidget->tr("Cancel"), 0, this->countGames(), this->parentWidget);
+    QProgressDialog progress("searching...", "Cancel", 0, this->countGames());
     progress.setMinimumDuration(400);
-    progress.setWindowModality(Qt::WindowModal);
+    progress.setWindowModality(Qt::ApplicationModal);
     //progress.setCancelButton(0);
-    //progress.show();
+    progress.show();
+
+    //qDebug() << "PgnDatabase search 3";
 
     quint64 stepCounter = 0;
     //qDebug() << pattern.whiteName;
 
+    chess::Game *temp = new chess::Game();
+
     for(int i=0;i<this->allOffsets.size();i++) {
+        //qDebug() << "search: "<<i;
 
         if(progress.wasCanceled()) {
             break;
         }
 
-        if(stepCounter %50 == 0) {
+        if(stepCounter %100 == 0) {
             progress.setValue(i);
             stepCounter = 0;
         }
         stepCounter += 1;
 
         qint64 offset_i = this->allOffsets.at(i);
-        if(this->pgnHeaderMatches(file, pattern, offset_i)) {
-            this->searchedOffsets.append(offset_i);
+
+        bool headerMatches = false;
+        if(pattern.searchGameData) { // search for game data
+            //qDebug() << "search game data";
+            chess::PgnHeader header_i = this->reader.readSingleHeaderFromPgnAt(in, offset_i);
+            headerMatches = this->pgnHeaderMatches(pattern, header_i);
+            if(pattern.searchPosition) { // search also for position
+                this->reader.readGame(in, offset_i, temp);
+                if(temp->matchesPosition(pattern.posHash) && headerMatches) {
+                    this->searchedOffsets.append(offset_i);
+                }
+                chess::NodePool::deleteNode(temp->getRootNode());
+                temp->reset();
+            } else {
+                if(headerMatches) {
+                    this->reader.readGame(in, offset_i, temp);
+                    chess::PgnPrinter pgnPrinter;
+                    qDebug() << pgnPrinter.printGame(temp).join("\n");
+                    chess::NodePool::deleteNode(temp->getRootNode());
+                    temp->reset();
+                    this->searchedOffsets.append(offset_i);
+                }
+            }
+        } else {  // just check search position
+            //qDebug() << "search position only";
+            if(pattern.searchPosition) {
+                this->reader.readGame(in, temp);
+                if(temp->matchesPosition(pattern.posHash)) {
+                    this->searchedOffsets.append(offset_i);
+                }
+                chess::NodePool::deleteNode(temp->getRootNode());
+                temp->reset();
+            }
+
         }
     }
     file.close();

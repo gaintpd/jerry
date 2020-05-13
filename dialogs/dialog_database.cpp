@@ -189,6 +189,7 @@ void DialogDatabase::onClickSearch() {
         //myTimer.start();
         // do something..
         try {
+            qDebug() << "searching...";
             this->gameModel->database.search(pattern);
             //int nMilliseconds = myTimer.elapsed();
             this->gameModel->database.setLastSelectedIndex(0);

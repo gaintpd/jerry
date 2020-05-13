@@ -31,7 +31,7 @@ TabPosSearch::TabPosSearch(GameModel *model, QWidget *parent) : QWidget(parent)
        lastMove->setValue(40);
        occursAtLeast->setValue(1);
 
-       chess::Board board(model->getGame()->getCurrentNode()->getBoard());
+       chess::Board board(*model->getGame()->getCurrentNode()->getBoard());
        ColorStyle cs = model->colorStyle;
        this->enterPos = new EnterPosBoard(cs, board, this);
 

@@ -283,7 +283,9 @@ void GameModel::restoreGameState() {
         QString pgnString = settings.value("currentGame").toString();
         chess::PgnReader *reader = new chess::PgnReader();
         try {
+            qDebug() << "restoring game";
             chess::Game *g = this->getGame();
+            chess::NodePool::deleteNode(g->getRootNode());
             reader->readGameFromString(pgnString, g);
             this->game->findEco();
         } catch(std::exception e) {
@@ -295,6 +297,7 @@ void GameModel::restoreGameState() {
         }
         delete reader;
     }
+    qDebug() << "restoring game finished";
     if(settings.contains("modelVersion")) {
         this->modelVersion = settings.value("modelVersion").toInt();
     }
@@ -408,4 +411,5 @@ void GameModel::restoreGameState() {
         }
     }
     settings.endArray();
+    qDebug() << "game setting restore finished";
 }

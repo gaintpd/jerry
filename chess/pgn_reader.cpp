@@ -149,22 +149,8 @@ QVector<qint64> PgnReader::scanPgn(QString &filename, bool is_utf8) {
 }
 
 
+PgnHeader PgnReader::readSingleHeaderFromPgnAt(QTextStream &in, qint64 offset) {
 
-PgnHeader PgnReader::readSingleHeaderFromPgnAt(QString &filename, qint64 offset, bool isUtf8) {
-
-    QFile file(filename);
-
-    if(!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        throw std::invalid_argument("unable to open file w/ supplied filename");
-    }
-    QTextStream in(&file);
-    QTextCodec *codec;
-    if(isUtf8) {
-        codec = QTextCodec::codecForName("UTF-8");
-    } else {
-        codec = QTextCodec::codecForName("ISO 8859-1");
-    }
-    in.setCodec(codec);
     if(offset != 0 && offset > 0) {
         in.seek(offset);
     }
@@ -221,9 +207,31 @@ PgnHeader PgnReader::readSingleHeaderFromPgnAt(QString &filename, qint64 offset,
             }
         }
     }
+    return header;
 
+}
+
+
+PgnHeader PgnReader::readSingleHeaderFromPgnAt(QString &filename, qint64 offset, bool isUtf8) {
+
+    QFile file(filename);
+
+    if(!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        throw std::invalid_argument("unable to open file w/ supplied filename");
+    }
+    QTextStream in(&file);
+    QTextCodec *codec;
+    if(isUtf8) {
+        codec = QTextCodec::codecForName("UTF-8");
+    } else {
+        codec = QTextCodec::codecForName("ISO 8859-1");
+    }
+    in.setCodec(codec);
+
+    PgnHeader header = this->readSingleHeaderFromPgnAt(in, offset);
     file.close();
     return header;
+
 }
 
 

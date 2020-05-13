@@ -43,8 +43,8 @@ private:
     bool currentlyOpen;
     int lastSelectedIndex;
     bool pgnHeaderMatches(QFile &file, SearchPattern &pattern, qint64 offset);
+    bool pgnHeaderMatches(SearchPattern &pattern, chess::PgnHeader &header);
     QVector<qint64> scanPgn(QString &filename, bool is_utf8);
-    bool pgnHeaderMatches1(QTextStream &openStream, SearchPattern &pattern, qint64 offset);
 
 
 };
