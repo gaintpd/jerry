@@ -2070,7 +2070,8 @@ QString Board::san(const Move &m) {
     bool is_checkmate = b_temp->is_checkmate();
     delete b_temp;
     */
-    Board b_temp = Board(this);
+    Board b_temp = Board(*this);
+    b_temp.apply(m);
     bool is_check = b_temp.is_check();
     bool is_checkmate = b_temp.is_checkmate();
 
